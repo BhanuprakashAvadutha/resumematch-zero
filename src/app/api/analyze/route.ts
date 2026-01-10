@@ -1,76 +1,92 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import pdfParse from 'pdf-parse';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
+import pdf from "pdf-parse";
 
-// Gemini system prompt – strict "Ruthless ATS Bot"
-const GEMINI_SYSTEM_PROMPT = `You are a ruthless ATS (Applicant Tracking System) bot. Analyze the provided resume text against the given job description and produce a strict JSON output matching the following structure:
+// 1. Initialize Gemini
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-{
-  "score": number, // 0-100
-  "missing_keywords": string[],
-  "matched_keywords": string[],
-  "rewritten_bullets":Array<{ "original": string, "new": string }>, // Suggest improvements for weak bullets
-  "feedback": string // Brutally honest summary
-}
+export async function POST(req: Request) {
+  try {
+    // 2. Parse the Form Data
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
+    const jobDescription = formData.get("jobDescription") as string;
 
-Do not include any explanations, apologies, markdown formatting (like \`\`\`json), or extra fields. Only return the raw JSON object.`;
-
-export async function POST(request: Request) {
-    try {
-        // 1️⃣ Parse FormData
-        const formData = await request.formData();
-        const file = formData.get('file') as File | null;
-        const jobDescription = (formData.get('jobDescription') as string) ?? '';
-
-        if (!file) {
-            return NextResponse.json({ error: 'PDF file missing' }, { status: 400 });
-        }
-
-        // 2️⃣ PDF → Text
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const pdfData = await pdfParse(buffer);
-        const resumeText = pdfData.text;
-
-        // 3️⃣ Gemini AI analysis
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-1.5-flash',
-            systemInstruction: GEMINI_SYSTEM_PROMPT,
-        });
-
-        const prompt = `Resume Text:\n${resumeText}\n\nJob Description:\n${jobDescription}`;
-        const result = await model.generateContent(prompt);
-        const responseText = await result.response.text();
-        // Expecting strict JSON – parse safely
-        let analysisResult: any;
-        try {
-            analysisResult = JSON.parse(responseText);
-        } catch (e) {
-            return NextResponse.json({ error: 'Gemini returned malformed JSON' }, { status: 502 });
-        }
-
-        // 4️⃣ Store in Supabase if user is logged in
-        const supabase = await createClient();
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (!userError && user) {
-            try {
-                await supabase.from('scans').insert({
-                    user_id: user.id,
-                    result: analysisResult,
-                    created_at: new Date().toISOString(),
-                });
-            } catch (dbErr) {
-                // Log but do not block response – optional console.log
-                console.error('Failed to insert scan:', dbErr);
-            }
-        }
-
-        // 5️⃣ Return analysis JSON
-        return NextResponse.json(analysisResult);
-    } catch (err) {
-        console.error('Unexpected error in /api/analyze:', err);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    if (!file || !jobDescription) {
+      return NextResponse.json({ error: "Missing file or description" }, { status: 400 });
     }
+
+    // 3. Convert PDF to Buffer (The "Buffer" warning fix)
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // 4. Extract Text
+    const data = await pdf(buffer);
+    const resumeText = data.text;
+
+    // 5. Connect to AI (The "404" fix: Switched to 'gemini-pro')
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const prompt = `
+      You are an expert ATS (Applicant Tracking System) optimizer.
+      
+      JOB DESCRIPTION:
+      ${jobDescription.slice(0, 5000)}
+
+      RESUME TEXT:
+      ${resumeText.slice(0, 5000)}
+
+      TASK:
+      1. Score the match (0-100).
+      2. Find missing keywords.
+      3. Find matched keywords.
+      4. Rewrite 3 bullet points.
+      5. Provide feedback.
+
+      OUTPUT MUST BE PURE JSON (No Markdown, no backticks):
+      {
+        "score": number,
+        "missing_keywords": ["string"],
+        "matched_keywords": ["string"],
+        "rewritten_bullets": [{"original": "string", "new": "string"}],
+        "feedback": "string"
+      }
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let text = response.text();
+
+    // 6. Clean the JSON (Gemini sometimes adds markdown)
+    text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    
+    const analysis = JSON.parse(text);
+
+    // 7. Save to Database (Silent)
+    try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+            await supabase.from('scans').insert({
+                user_id: user.id,
+                job_title: jobDescription.slice(0, 50) + "...",
+                match_score: analysis.score,
+                missing_keywords: analysis.missing_keywords,
+                matched_keywords: analysis.matched_keywords,
+                feedback: analysis.feedback
+            });
+        }
+    } catch (dbError) {
+        console.error("Database save failed:", dbError);
+        // Continue anyway, don't break the app
+    }
+
+    return NextResponse.json(analysis);
+
+  } catch (error) {
+    console.error("Analysis Error:", error);
+    return NextResponse.json({ error: "Failed to analyze resume" }, { status: 500 });
+  }
 }
