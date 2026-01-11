@@ -1,5 +1,5 @@
 "use client";
-import { Check, X, Download, Copy } from "lucide-react";
+import { Check, X, Download, Copy, CheckCircle2 } from "lucide-react";
 
 export default function AnalysisReport({ result }: { result: any }) {
   const getScoreColor = (score: number) => {
