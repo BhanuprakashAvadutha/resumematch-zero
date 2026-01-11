@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing file or description" }, { status: 400 });
     }
 
-    // 3. Convert PDF to Buffer (The "Buffer" warning fix)
+    // 3. Convert PDF to Buffer safely
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
@@ -25,8 +25,8 @@ export async function POST(req: Request) {
     const data = await pdf(buffer);
     const resumeText = data.text;
 
-    // 5. Connect to AI (The "404" fix: Switched to 'gemini-pro')
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // 5. Connect to AI (FIX: Updated to 2026 Model 'gemini-2.5-flash')
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
       You are an expert ATS (Applicant Tracking System) optimizer.
@@ -58,14 +58,13 @@ export async function POST(req: Request) {
     const response = await result.response;
     let text = response.text();
 
-    // 6. Clean the JSON (Gemini sometimes adds markdown)
+    // 6. Clean the JSON
     text = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    
     const analysis = JSON.parse(text);
 
-    // 7. Save to Database (Silent)
+    // 7. Save to Database (With await fix)
     try {
-        const supabase = createClient();
+        const supabase = await createClient(); 
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
@@ -79,14 +78,13 @@ export async function POST(req: Request) {
             });
         }
     } catch (dbError) {
-        console.error("Database save failed:", dbError);
-        // Continue anyway, don't break the app
+        console.error("Database save failed (non-fatal):", dbError);
     }
 
     return NextResponse.json(analysis);
 
   } catch (error) {
     console.error("Analysis Error:", error);
-    return NextResponse.json({ error: "Failed to analyze resume" }, { status: 500 });
+    return NextResponse.json({ error: "AI Processing Failed. Try again." }, { status: 500 });
   }
 }

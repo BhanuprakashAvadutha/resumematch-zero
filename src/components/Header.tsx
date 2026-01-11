@@ -18,31 +18,30 @@ export default async function Header() {
                 <div className="flex items-center gap-6">
                     {user ? (
                         <>
-                            <Link
-                                href="/history"
-                                className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                            href="/history"
+                            className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
                             >
-                                History
-                            </Link>
-                            <form action={signOut}>
-                                <button
-                                    type="submit"
-                                    className="text-sm font-medium text-red-400 hover:text-red-300 transition-colors"
-                                >
-                                    Sign Out
-                                </button>
-                            </form>
-                        </>
-                    ) : (
-                        <Link
-                            href="/login"
-                            className="px-4 py-2 text-sm font-medium text-black bg-white rounded-full hover:bg-gray-200 transition-colors"
-                        >
-                            Sign In
+                            Dashboard
                         </Link>
+                    <form action={signOut}>
+                        <button
+                            type="submit"
+                            className="text-sm font-medium text-red-400 hover:text-red-300 transition-colors"
+                        >
+                            Sign Out
+                        </button>
+                    </form>
+                </>
+                ) : (
+                <Link
+                    href="/login"
+                    className="px-4 py-2 text-sm font-medium text-black bg-white rounded-full hover:bg-gray-200 transition-colors"
+                >
+                    Sign In
+                </Link>
                     )}
-                </div>
             </div>
-        </header>
+        </div>
+        </header >
     );
 }

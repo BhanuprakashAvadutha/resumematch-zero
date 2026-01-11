@@ -1,216 +1,189 @@
-'use client';
-
-import { useState } from 'react';
-import { AnalysisResponse } from '@/types';
-import { Upload, FileText, AlertCircle, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+"use client";
+import { useState } from "react";
+import { Upload, FileText, CheckCircle2, AlertCircle, Zap, Shield, Sparkles } from "lucide-react";
+import AnalysisReport from "@/components/AnalysisReport";
 
 export default function Home() {
-    const [file, setFile] = useState<File | null>(null);
-    const [jobDescription, setJobDescription] = useState('');
-    const [result, setResult] = useState<AnalysisResponse | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [jobDescription, setJobDescription] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!file) return;
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
 
-        setIsLoading(true);
-        setError(null);
-        setResult(null);
+  const handleAnalyze = async () => {
+    if (!file || !jobDescription) return;
+    setIsLoading(true);
+    setError(null);
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('jobDescription', jobDescription);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("jobDescription", jobDescription);
 
-        try {
-            const res = await fetch('/api/analyze', {
-                method: 'POST',
-                body: formData,
-            });
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Analysis failed");
+      setResult(data);
+    } catch (err) {
+      setError("Failed to analyze. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-            if (!res.ok) {
-                throw new Error(`Error: ${res.statusText}`);
-            }
+  return (
+    <main className="min-h-screen bg-[var(--bg-default)] text-white font-sans selection:bg-blue-500/30">
+      
+      {/* 1. HERO SECTION (Scanner) */}
+      <section className="max-w-6xl mx-auto px-6 pt-24 pb-12">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tighter mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+            Beat the ATS Robots.
+          </h1>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Stop getting rejected. Our AI scans your resume against the job description 
+            and tells you exactly what keywords you are missing.
+          </p>
+        </div>
 
-            const data = await res.json();
-            setResult(data);
-        } catch (err: any) {
-            setError(err.message || 'Something went wrong');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const getScoreColor = (score: number) => {
-        if (score >= 70) return 'text-green-500 border-green-500/50 shadow-green-500/20';
-        if (score >= 40) return 'text-yellow-500 border-yellow-500/50 shadow-yellow-500/20';
-        return 'text-red-500 border-red-500/50 shadow-red-500/20';
-    };
-
-    return (
-        <main className="container mx-auto px-6 py-12">
-            {/* Hero */}
-            <div className="text-center mb-16 space-y-4">
-                <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500">
-                    Beat the Bots.
-                </h1>
-                <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                    Our ruthless AI analyzes your resume against job descriptions to expose weaknesses before the ATS does.
-                </p>
+        {/* The Scanner Interface */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* LEFT: Inputs */}
+          <div className="space-y-6">
+            {/* Dropzone */}
+            <div className="bg-[var(--bg-surface)] border-2 border-dashed border-gray-700 rounded-2xl p-8 text-center hover:border-blue-500 transition-colors group">
+              <input type="file" accept=".pdf" onChange={handleFileChange} className="hidden" id="resume-upload" />
+              <label htmlFor="resume-upload" className="cursor-pointer flex flex-col items-center gap-4">
+                <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                  {file ? <CheckCircle2 size={32} /> : <Upload size={32} />}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-200">
+                    {file ? file.name : "Upload Resume (PDF)"}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">Drag & drop or click to browse</p>
+                </div>
+              </label>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-8 items-start">
-                {/* Left: Input Form */}
-                <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm sticky top-24">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Target Job Description
-                            </label>
-                            <textarea
-                                value={jobDescription}
-                                onChange={(e) => setJobDescription(e.target.value)}
-                                rows={8}
-                                className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all resize-none"
-                                placeholder="Paste the full job description here..."
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Your Resume (PDF)
-                            </label>
-                            <div className="relative group">
-                                <input
-                                    type="file"
-                                    accept=".pdf"
-                                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                />
-                                <div className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${file ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-white/10 bg-black/50 group-hover:border-white/20'}`}>
-                                    {file ? (
-                                        <div className="flex items-center justify-center gap-3 text-indigo-400">
-                                            <FileText className="w-6 h-6" />
-                                            <span className="font-medium">{file.name}</span>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-2 text-gray-500">
-                                            <Upload className="w-8 h-8 mx-auto" />
-                                            <p className="text-sm font-medium">Drop your PDF here or click to browse</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {error && (
-                            <div className="flex items-center gap-2 text-red-400 bg-red-950/30 border border-red-500/20 p-4 rounded-xl text-sm">
-                                <AlertCircle className="w-4 h-4 shrink-0" />
-                                {error}
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={isLoading || !file}
-                            className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-500/20 disabled:shadow-none flex items-center justify-center gap-2"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    Analyzing...
-                                </>
-                            ) : (
-                                'Analyze Resume'
-                            )}
-                        </button>
-                    </form>
-                </div>
-
-                {/* Right: Results */}
-                <div className="space-y-6">
-                    {result ? (
-                        <div className="space-y-6 animate-in slide-in-from-bottom-4 fade-in duration-500">
-                            {/* Score Card */}
-                            <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-8 backdrop-blur-sm text-center">
-                                <h3 className="text-gray-400 font-medium mb-4 uppercase tracking-widest text-sm">Match Score</h3>
-                                <div className={`inline-flex items-center justify-center w-32 h-32 rounded-full border-4 text-5xl font-black shadow-lg ${getScoreColor(result.score)}`}>
-                                    {result.score}
-                                </div>
-                                <p className="mt-6 text-gray-300 leading-relaxed text-lg">
-                                    {result.feedback}
-                                </p>
-                            </div>
-
-                            {/* Keywords */}
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                                    <h3 className="flex items-center gap-2 font-bold text-red-400 mb-4">
-                                        <XCircle className="w-5 h-5" />
-                                        Missing Keywords
-                                    </h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {result.missing_keywords.length > 0 ? (
-                                            result.missing_keywords.map(kw => (
-                                                <span key={kw} className="px-3 py-1 rounded-full bg-red-950/30 border border-red-500/20 text-red-300 text-sm">
-                                                    {kw}
-                                                </span>
-                                            ))
-                                        ) : (
-                                            <span className="text-gray-500 text-sm italic">None required.</span>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                                    <h3 className="flex items-center gap-2 font-bold text-green-400 mb-4">
-                                        <CheckCircle className="w-5 h-5" />
-                                        Matched Keywords
-                                    </h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {result.matched_keywords.length > 0 ? (
-                                            result.matched_keywords.map(kw => (
-                                                <span key={kw} className="px-3 py-1 rounded-full bg-green-950/30 border border-green-500/20 text-green-300 text-sm">
-                                                    {kw}
-                                                </span>
-                                            ))
-                                        ) : (
-                                            <span className="text-gray-500 text-sm italic">No matches found.</span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Improvements */}
-                            {result.rewritten_bullets && result.rewritten_bullets.length > 0 && (
-                                <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                                    <h3 className="font-bold text-white mb-6">Recommended Improvements</h3>
-                                    <div className="space-y-4">
-                                        {result.rewritten_bullets.map((item, idx) => (
-                                            <div key={idx} className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-3">
-                                                <div className="text-red-400/80 text-sm line-through decoration-red-400/50 pl-2 border-l-2 border-red-500/30">
-                                                    {item.original}
-                                                </div>
-                                                <div className="text-green-400 text-sm pl-2 border-l-2 border-green-500">
-                                                    {item.new}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        /* Placeholder / Empty State */
-                        <div className="h-full flex items-center justify-center border-2 border-dashed border-zinc-800 rounded-2xl p-12 text-zinc-800">
-                            <div className="text-center space-y-2">
-                                <div className="text-6xl font-black opacity-20">ZERO</div>
-                                <p>Analysis results will appear here</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
+            {/* JD Input */}
+            <div className="bg-[var(--bg-surface)] border border-gray-800 rounded-2xl p-4 focus-within:border-blue-500/50 transition-colors">
+              <label className="flex items-center gap-2 text-sm font-bold text-gray-400 mb-3">
+                <FileText size={16} /> Paste Job Description
+              </label>
+              <textarea
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Paste the full job description here..."
+                className="w-full h-48 bg-transparent text-gray-200 resize-none focus:outline-none text-sm leading-relaxed"
+              />
             </div>
-        </main>
-    );
+
+            {/* Action Button */}
+            <button
+              onClick={handleAnalyze}
+              disabled={isLoading || !file || !jobDescription}
+              className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Scanning ATS Filters...
+                </>
+              ) : (
+                <>
+                  <Zap size={20} className="fill-current" /> Analyze Match
+                </>
+              )}
+            </button>
+
+            {error && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 flex items-center gap-3">
+                <AlertCircle size={20} /> {error}
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT: Results Area */}
+          <div className="bg-[var(--bg-surface)] border border-gray-800 rounded-2xl min-h-[500px] p-6 relative overflow-hidden">
+            {result ? (
+              <AnalysisReport result={result} />
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-600 space-y-4">
+                <Sparkles size={48} className="opacity-20" />
+                <p>Results will appear here...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* 2. TRUST BAR */}
+      <section className="border-t border-white/5 bg-white/2 py-10">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <p className="text-sm text-gray-500 uppercase tracking-widest font-bold mb-6">
+            Optimized for Modern ATS Algorithms
+          </p>
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-40 grayscale">
+            {/* Simple Text Logos for speed */}
+            <span className="text-xl font-bold">Greenhouse</span>
+            <span className="text-xl font-bold">Lever</span>
+            <span className="text-xl font-bold">Workday</span>
+            <span className="text-xl font-bold">Taleo</span>
+            <span className="text-xl font-bold">iCIMS</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. FEATURES GRID */}
+      <section className="py-24 max-w-6xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-bold mb-4">Why use ResuMatch Zero?</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-[var(--bg-surface)] p-8 rounded-2xl border border-gray-800 hover:border-blue-500/50 transition-colors">
+            <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400 mb-6">
+              <Zap size={24} />
+            </div>
+            <h3 className="text-xl font-bold mb-3">Instant AI Score</h3>
+            <p className="text-gray-400 leading-relaxed">
+              We use Google's advanced Gemini 2.5 Flash model to compare your resume against the job description in seconds.
+            </p>
+          </div>
+          <div className="bg-[var(--bg-surface)] p-8 rounded-2xl border border-gray-800 hover:border-emerald-500/50 transition-colors">
+            <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center text-emerald-400 mb-6">
+              <Shield size={24} />
+            </div>
+            <h3 className="text-xl font-bold mb-3">100% Private</h3>
+            <p className="text-gray-400 leading-relaxed">
+              Your resume is processed securely. We do not sell your data to recruiters or third-party agencies.
+            </p>
+          </div>
+          <div className="bg-[var(--bg-surface)] p-8 rounded-2xl border border-gray-800 hover:border-purple-500/50 transition-colors">
+            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400 mb-6">
+              <Sparkles size={24} />
+            </div>
+            <h3 className="text-xl font-bold mb-3">Smart Rewrites</h3>
+            <p className="text-gray-400 leading-relaxed">
+              Don't just see what's wrong. See how to fix it. Our AI rewrites your bullet points to match the job.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. FOOTER */}
+      <footer className="border-t border-white/10 py-12 text-center text-gray-500 text-sm">
+        <p>© 2026 ResuMatch Zero. Built for Job Seekers.</p>
+      </footer>
+    </main>
+  );
 }

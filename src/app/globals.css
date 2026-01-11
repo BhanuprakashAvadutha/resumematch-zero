@@ -24,3 +24,22 @@ body {
   color: var(--foreground);
   background: var(--background);
 }
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #analysis-report, #analysis-report * {
+    visibility: visible;
+  }
+  #analysis-report {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white;
+    color: black;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

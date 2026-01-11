@@ -14,8 +14,8 @@ export default function AuthPage() {
                     <button
                         onClick={() => setIsLogin(true)}
                         className={`text-sm font-medium pb-2 -mb-4 border-b-2 transition-colors ${isLogin
-                                ? 'text-white border-indigo-500'
-                                : 'text-gray-500 border-transparent hover:text-gray-300'
+                            ? 'text-white border-indigo-500'
+                            : 'text-gray-500 border-transparent hover:text-gray-300'
                             }`}
                     >
                         Sign In
@@ -23,8 +23,8 @@ export default function AuthPage() {
                     <button
                         onClick={() => setIsLogin(false)}
                         className={`text-sm font-medium pb-2 -mb-4 border-b-2 transition-colors ${!isLogin
-                                ? 'text-white border-indigo-500'
-                                : 'text-gray-500 border-transparent hover:text-gray-300'
+                            ? 'text-white border-indigo-500'
+                            : 'text-gray-500 border-transparent hover:text-gray-300'
                             }`}
                     >
                         Sign Up
@@ -58,9 +58,14 @@ export default function AuthPage() {
                             />
                         </div>
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
-                                Password
-                            </label>
+                            <div className="flex items-center justify-between mb-1">
+                                <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+                                    Password
+                                </label>
+                                <a href="/forgot-password" className="text-xs text-indigo-400 hover:text-indigo-300">
+                                    Forgot Password?
+                                </a>
+                            </div>
                             <input
                                 id="password"
                                 name="password"
