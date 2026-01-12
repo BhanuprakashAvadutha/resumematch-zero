@@ -1,3 +1,4 @@
+// DEBUG VERSION 1.0
 "use client";
 import { useState } from "react";
 import { Upload, FileText, CheckCircle2, AlertCircle, Zap, Shield, Sparkles } from "lucide-react";
@@ -31,10 +32,15 @@ export default function Home() {
         body: formData,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Analysis failed");
+      
+      if (!res.ok) {
+        // SHOW THE REAL ERROR
+        throw new Error(data.error || "Analysis failed");
+      }
+      
       setResult(data);
-    } catch (err) {
-      setError("Failed to analyze. Please try again.");
+    } catch (err: any) {
+      setError(err.message); // Show specific message
     } finally {
       setIsLoading(false);
     }
@@ -42,7 +48,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[var(--bg-default)] text-white font-sans selection:bg-blue-500/30">
-      
+
       {/* 1. HERO SECTION (Scanner) */}
       <section className="max-w-6xl mx-auto px-6 pt-24 pb-12">
         <div className="text-center mb-12">
@@ -50,7 +56,7 @@ export default function Home() {
             Beat the ATS Robots.
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Stop getting rejected. Our AI scans your resume against the job description 
+            Stop getting rejected. Our AI scans your resume against the job description
             and tells you exactly what keywords you are missing.
           </p>
         </div>
