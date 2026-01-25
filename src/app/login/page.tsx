@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Loader2, Zap } from 'lucide-react';
 import Link from 'next/link';
@@ -12,91 +11,74 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [isPending, startTransition] = useTransition();
-    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-    const router = useRouter();
-
-    // Redirect if already logged in
-    useEffect(() => {
-        const checkAuth = async () => {
-            const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                router.replace('/');
-            } else {
-                setIsCheckingAuth(false);
-            }
-        };
-        checkAuth();
-    }, [router]);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setIsLoading(true);
 
         // Validation
         if (mode === 'signup' && fullName.trim().length < 2) {
             setError('Please enter your full name.');
+            setIsLoading(false);
             return;
         }
         if (password.length < 8) {
             setError('Password must be at least 8 characters.');
+            setIsLoading(false);
             return;
         }
 
-        startTransition(async () => {
-            try {
-                const supabase = createClient();
+        try {
+            const supabase = createClient();
 
-                if (mode === 'signup') {
-                    // Sign up
-                    const { error: signUpError } = await supabase.auth.signUp({
-                        email,
-                        password,
-                        options: {
-                            data: { full_name: fullName },
-                        },
-                    });
-                    if (signUpError) throw signUpError;
-
-                    // Auto sign-in after signup
-                    const { error: signInError } = await supabase.auth.signInWithPassword({
-                        email,
-                        password,
-                    });
-                    if (signInError) throw signInError;
-                } else {
-                    // Sign in
-                    const { error: signInError } = await supabase.auth.signInWithPassword({
-                        email,
-                        password,
-                    });
-                    if (signInError) throw signInError;
+            if (mode === 'signup') {
+                // Sign up
+                const { error: signUpError } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: { full_name: fullName },
+                    },
+                });
+                if (signUpError) {
+                    setError(signUpError.message);
+                    setIsLoading(false);
+                    return;
                 }
 
-                // Redirect to scanner
-                router.refresh();
-                router.push('/');
-            } catch (err: any) {
-                const msg = err.message || '';
-                if (msg.includes('Invalid login credentials')) {
-                    setError('Incorrect email or password.');
-                } else if (msg.includes('User already registered')) {
-                    setError('Email already registered. Please sign in.');
-                } else {
-                    setError(msg || 'Something went wrong. Please try again.');
+                // Auto sign-in after signup
+                const { error: signInError } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                if (signInError) {
+                    setError(signInError.message);
+                    setIsLoading(false);
+                    return;
+                }
+            } else {
+                // Sign in
+                const { error: signInError } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                if (signInError) {
+                    setError(signInError.message);
+                    setIsLoading(false);
+                    return;
                 }
             }
-        });
-    };
 
-    if (isCheckingAuth) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
-                <Loader2 className="animate-spin text-blue-500" size={32} />
-            </div>
-        );
-    }
+            // FORCE HARD REFRESH - This is the fix!
+            window.location.href = "/";
+
+        } catch (err: any) {
+            setError(err.message || 'Something went wrong. Please try again.');
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] px-4">
@@ -185,10 +167,10 @@ export default function LoginPage() {
 
                         <button
                             type="submit"
-                            disabled={isPending}
+                            disabled={isLoading}
                             className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                         >
-                            {isPending ? (
+                            {isLoading ? (
                                 <>
                                     <Loader2 className="animate-spin" size={18} />
                                     {mode === 'signin' ? 'Signing in...' : 'Creating account...'}

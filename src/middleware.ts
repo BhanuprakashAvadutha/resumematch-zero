@@ -1,9 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Routes that don't require authentication
-const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/reset-password'];
-const AUTH_ROUTES = ['/login', '/signup']; // Routes that logged-in users should skip
+// Only these routes require authentication
+const PROTECTED_ROUTES = ['/profile'];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -12,14 +11,12 @@ export async function middleware(request: NextRequest) {
     if (
         pathname.startsWith('/_next') ||
         pathname.startsWith('/api') ||
-        pathname.includes('.') // static files
+        pathname.includes('.')
     ) {
         return NextResponse.next();
     }
 
-    let response = NextResponse.next({
-        request,
-    });
+    let response = NextResponse.next({ request });
 
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,9 +30,7 @@ export async function middleware(request: NextRequest) {
                     cookiesToSet.forEach(({ name, value }) =>
                         request.cookies.set(name, value)
                     );
-                    response = NextResponse.next({
-                        request,
-                    });
+                    response = NextResponse.next({ request });
                     cookiesToSet.forEach(({ name, value, options }) =>
                         response.cookies.set(name, value, options)
                     );
@@ -47,18 +42,14 @@ export async function middleware(request: NextRequest) {
     // Refresh session
     const { data: { user } } = await supabase.auth.getUser();
 
-    // CASE 1: User is logged in and trying to access auth pages -> Redirect to home (Scanner)
-    if (user && AUTH_ROUTES.some(route => pathname.startsWith(route))) {
-        return NextResponse.redirect(new URL('/', request.url));
-    }
+    // ONLY protect specific routes - DO NOT redirect away from /login or /signup
+    const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
 
-    // CASE 2: User is NOT logged in and trying to access protected routes -> Redirect to login
-    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route)) || pathname === '/';
-    if (!user && !isPublicRoute) {
+    if (!user && isProtectedRoute) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    // CASE 3: All other cases -> Allow access
+    // Let everything else through - client components handle their own redirects
     return response;
 }
 

@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Loader2, Zap, UserPlus } from 'lucide-react';
 import Link from 'next/link';
@@ -9,58 +8,68 @@ import Link from 'next/link';
 export default function SignupPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [fullName, setFullName] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [isPending, startTransition] = useTransition();
-    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setIsLoading(true);
 
         // Validation
         if (fullName.trim().length < 2) {
             setError('Please enter your full name.');
+            setIsLoading(false);
             return;
         }
         if (password.length < 8) {
             setError('Password must be at least 8 characters.');
+            setIsLoading(false);
+            return;
+        }
+        if (password !== confirmPassword) {
+            setError('Passwords do not match. Please try again.');
+            setIsLoading(false);
             return;
         }
 
-        startTransition(async () => {
-            try {
-                const supabase = createClient();
+        try {
+            const supabase = createClient();
 
-                // Sign up
-                const { error: signUpError } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: { full_name: fullName },
-                    },
-                });
-                if (signUpError) throw signUpError;
-
-                // Auto sign-in after signup
-                const { error: signInError } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                });
-                if (signInError) throw signInError;
-
-                // Redirect to scanner
-                router.refresh();
-                router.push('/');
-            } catch (err: any) {
-                const msg = err.message || '';
-                if (msg.includes('User already registered')) {
-                    setError('Email already registered. Please sign in.');
-                } else {
-                    setError(msg || 'Something went wrong. Please try again.');
-                }
+            // Sign up
+            const { error: signUpError } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: { full_name: fullName },
+                },
+            });
+            if (signUpError) {
+                setError(signUpError.message);
+                setIsLoading(false);
+                return;
             }
-        });
+
+            // Auto sign-in after signup
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+            if (signInError) {
+                setError(signInError.message);
+                setIsLoading(false);
+                return;
+            }
+
+            // FORCE HARD REFRESH - This is the fix!
+            window.location.href = "/";
+
+        } catch (err: any) {
+            setError(err.message || 'Something went wrong. Please try again.');
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -123,6 +132,18 @@ export default function SignupPage() {
                             <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
                         </div>
 
+                        <div>
+                            <label className="block text-sm text-gray-400 mb-1">Confirm Password</label>
+                            <input
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
+                                required
+                            />
+                        </div>
+
                         {error && (
                             <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm text-center">
                                 {error}
@@ -131,10 +152,10 @@ export default function SignupPage() {
 
                         <button
                             type="submit"
-                            disabled={isPending}
+                            disabled={isLoading}
                             className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                         >
-                            {isPending ? (
+                            {isLoading ? (
                                 <>
                                     <Loader2 className="animate-spin" size={18} />
                                     Creating account...

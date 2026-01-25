@@ -30,11 +30,11 @@ export default async function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
             </span>
-            Enterprise-Grade ATS Scanner
+            State of The Art - ATS Scanner
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-gradient-to-b from-white to-gray-400 bg-clip-text text-transparent">
-            Beat the Bots. <br /> Land the Interview.
+            Beat the ATS Scanner. <br /> Land the Interview.
           </h1>
           <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
             Stop guessing keywords. Our State of the Art AI analyzes your resume against job descriptions to expose gaps instantly.
