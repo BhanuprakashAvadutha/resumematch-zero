@@ -73,7 +73,7 @@ export default async function Home() {
       <section className="py-24 max-w-6xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
-            { icon: Zap, title: "Instant Analysis", desc: "Get a match score in milliseconds. No AI waiting times." },
+            { icon: Zap, title: "Instant Analysis", desc: "Get a match score in seconds. No AI waiting times." },
             { icon: Shield, title: "100% Private", desc: "Your data is encrypted. We don't sell info to recruiters." },
             { icon: TrendingUp, title: "Actionable Tips", desc: "Don't just see a score. Get a step-by-step guide to improve." }
           ].map((f, i) => (
