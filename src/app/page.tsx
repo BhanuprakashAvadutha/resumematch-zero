@@ -37,7 +37,7 @@ export default async function Home() {
             Beat the Bots. <br /> Land the Interview.
           </h1>
           <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Stop guessing keywords. Our logic-engine analyzes your resume against job descriptions to expose gaps instantly.
+            Stop guessing keywords. Our State of the Art AI analyzes your resume against job descriptions to expose gaps instantly.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

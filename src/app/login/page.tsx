@@ -2,18 +2,21 @@
 
 import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { login, signup } from '@/app/auth/actions';
 import { createClient } from '@/utils/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Zap } from 'lucide-react';
+import Link from 'next/link';
 
-export default function AuthPage() {
-    const [isLogin, setIsLogin] = useState(true);
+export default function LoginPage() {
+    const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [fullName, setFullName] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const router = useRouter();
 
-    // Check if user is already logged in - redirect to home
+    // Redirect if already logged in
     useEffect(() => {
         const checkAuth = async () => {
             const supabase = createClient();
@@ -27,46 +30,61 @@ export default function AuthPage() {
         checkAuth();
     }, [router]);
 
-    const handleSubmit = async (formData: FormData) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         setError(null);
 
-        // Client-side validation for signup
-        if (!isLogin) {
-            const password = formData.get('password') as string;
-            const fullName = formData.get('fullName') as string;
-
-            if (!fullName || fullName.trim().length < 2) {
-                setError('Please enter your full name.');
-                return;
-            }
-
-            if (password.length < 8) {
-                setError('Password must be at least 8 characters long.');
-                return;
-            }
+        // Validation
+        if (mode === 'signup' && fullName.trim().length < 2) {
+            setError('Please enter your full name.');
+            return;
+        }
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters.');
+            return;
         }
 
         startTransition(async () => {
             try {
-                if (isLogin) {
-                    await login(formData);
-                } else {
-                    await signup(formData);
-                }
-                router.refresh();
-            } catch (e: any) {
-                const message = e.message || '';
+                const supabase = createClient();
 
-                if (message.includes('Invalid login credentials')) {
-                    setError('Password is incorrect. Please try again.');
-                } else if (message.includes('User already registered')) {
-                    setError('User already exists. Please sign in instead.');
-                } else if (message.includes('Email not confirmed')) {
-                    setError('Please confirm your email before signing in.');
-                } else if (message.includes('invalid_credentials')) {
-                    setError('Password is incorrect. Please try again.');
+                if (mode === 'signup') {
+                    // Sign up
+                    const { error: signUpError } = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            data: { full_name: fullName },
+                        },
+                    });
+                    if (signUpError) throw signUpError;
+
+                    // Auto sign-in after signup
+                    const { error: signInError } = await supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                    });
+                    if (signInError) throw signInError;
                 } else {
-                    setError(message || 'Authentication failed. Please try again.');
+                    // Sign in
+                    const { error: signInError } = await supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                    });
+                    if (signInError) throw signInError;
+                }
+
+                // Redirect to scanner
+                router.refresh();
+                router.push('/');
+            } catch (err: any) {
+                const msg = err.message || '';
+                if (msg.includes('Invalid login credentials')) {
+                    setError('Incorrect email or password.');
+                } else if (msg.includes('User already registered')) {
+                    setError('Email already registered. Please sign in.');
+                } else {
+                    setError(msg || 'Something went wrong. Please try again.');
                 }
             }
         });
@@ -74,108 +92,93 @@ export default function AuthPage() {
 
     if (isCheckingAuth) {
         return (
-            <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-                <Loader2 className="animate-spin text-gray-400" size={32} />
+            <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
+                <Loader2 className="animate-spin text-blue-500" size={32} />
             </div>
         );
     }
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-zinc-900/50 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
-                {/* Tabs */}
-                <div className="flex gap-4 mb-8 border-b border-white/10 pb-4">
-                    <button
-                        onClick={() => { setIsLogin(true); setError(null); }}
-                        className={`text-sm font-medium pb-2 -mb-4 border-b-2 transition-colors ${isLogin
-                                ? 'text-white border-indigo-500'
-                                : 'text-gray-500 border-transparent hover:text-gray-300'
-                            }`}
-                    >
-                        Sign In
-                    </button>
-                    <button
-                        onClick={() => { setIsLogin(false); setError(null); }}
-                        className={`text-sm font-medium pb-2 -mb-4 border-b-2 transition-colors ${!isLogin
-                                ? 'text-white border-indigo-500'
-                                : 'text-gray-500 border-transparent hover:text-gray-300'
-                            }`}
-                    >
-                        Sign Up
-                    </button>
+        <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] px-4">
+            <div className="w-full max-w-sm">
+                {/* Logo */}
+                <div className="text-center mb-8">
+                    <Link href="/" className="inline-flex items-center gap-2">
+                        <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
+                            <Zap size={20} className="text-white" fill="currentColor" />
+                        </div>
+                        <span className="text-xl font-bold text-white">ResuMatch Zero</span>
+                    </Link>
                 </div>
 
-                <div className="space-y-6">
-                    <div className="text-center">
-                        <h1 className="text-2xl font-bold tracking-tight text-white">
-                            {isLogin ? 'Welcome back' : 'Create an account'}
-                        </h1>
-                        <p className="mt-2 text-sm text-gray-400">
-                            {isLogin
-                                ? 'Enter your credentials to access your dashboard'
-                                : 'Start your journey to a better resume'}
-                        </p>
+                {/* Card */}
+                <div className="bg-[#111118] border border-gray-800 rounded-2xl p-6">
+                    {/* Toggle */}
+                    <div className="flex mb-6 bg-gray-900 rounded-lg p-1">
+                        <button
+                            type="button"
+                            onClick={() => { setMode('signin'); setError(null); }}
+                            className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${mode === 'signin' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                                }`}
+                        >
+                            Sign In
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setMode('signup'); setError(null); }}
+                            className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${mode === 'signup' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                                }`}
+                        >
+                            Sign Up
+                        </button>
                     </div>
 
-                    <form action={handleSubmit} className="space-y-4">
-                        {/* Full Name - Only for Sign Up */}
-                        {!isLogin && (
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {mode === 'signup' && (
                             <div>
-                                <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-1">
-                                    Full Name
-                                </label>
+                                <label className="block text-sm text-gray-400 mb-1">Full Name</label>
                                 <input
-                                    id="fullName"
-                                    name="fullName"
                                     type="text"
-                                    required={!isLogin}
-                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
                                     placeholder="John Doe"
+                                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
+                                    required={mode === 'signup'}
                                 />
                             </div>
                         )}
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
-                                Email
-                            </label>
+                            <label className="block text-sm text-gray-400 mb-1">Email</label>
                             <input
-                                id="email"
-                                name="email"
                                 type="email"
-                                required
-                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@example.com"
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
+                                required
                             />
                         </div>
 
                         <div>
-                            <div className="flex items-center justify-between mb-1">
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-                                    Password
-                                </label>
-                                {isLogin && (
-                                    <a href="/forgot-password" className="text-xs text-indigo-400 hover:text-indigo-300">
-                                        Forgot Password?
-                                    </a>
-                                )}
-                            </div>
+                            <label className="block text-sm text-gray-400 mb-1">Password</label>
                             <input
-                                id="password"
-                                name="password"
                                 type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
                                 required
                                 minLength={8}
-                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
-                                placeholder="••••••••"
                             />
-                            {!isLogin && (
-                                <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
+                            {mode === 'signup' && (
+                                <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
                             )}
                         </div>
 
                         {error && (
-                            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center">
+                            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm text-center">
                                 {error}
                             </div>
                         )}
@@ -183,19 +186,31 @@ export default function AuthPage() {
                         <button
                             type="submit"
                             disabled={isPending}
-                            className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
+                            className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                         >
                             {isPending ? (
                                 <>
                                     <Loader2 className="animate-spin" size={18} />
-                                    {isLogin ? 'Signing In...' : 'Creating Account...'}
+                                    {mode === 'signin' ? 'Signing in...' : 'Creating account...'}
                                 </>
                             ) : (
-                                isLogin ? 'Sign In' : 'Create Account'
+                                mode === 'signin' ? 'Sign In' : 'Create Account'
                             )}
                         </button>
                     </form>
+
+                    {mode === 'signin' && (
+                        <div className="mt-4 text-center">
+                            <Link href="/forgot-password" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">
+                                Forgot password?
+                            </Link>
+                        </div>
+                    )}
                 </div>
+
+                <p className="text-center text-gray-600 text-xs mt-6">
+                    By continuing, you agree to our Terms of Service.
+                </p>
             </div>
         </div>
     );
