@@ -42,7 +42,7 @@ export default async function Home() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/login"
+              href="/signup"
               className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/25 transition-all hover:scale-105"
             >
               Get Started for Free
