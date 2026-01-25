@@ -32,7 +32,7 @@ export default async function Header() {
                         <div className="flex items-center gap-4">
                             <Link href="/login" className="text-sm font-medium text-gray-300 hover:text-white">Sign In</Link>
                             <Link
-                                href="/signup"
+                                href="/login"
                                 className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-blue-500/20"
                             >
                                 Get Started
