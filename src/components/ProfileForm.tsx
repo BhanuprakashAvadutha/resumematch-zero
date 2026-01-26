@@ -33,9 +33,18 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
     const supabase = createClient();
 
     const handleSave = async () => {
-        if (!profile) return;
+        // If no ID exists (shouldn't happen for logged in users if we create profile on fly), we need to handle it.
+        // Ideally, the server page ensures a row exists, or we use upsert.
+        // For now, assuming update on existing ID.
+        if (!profile) {
+            // Fallback: If for some reason profile is missing but user is logged in, we should probably Upsert based on auth user.
+            // But since we don't have user ID passed here efficiently, let's rely on server ensuring profile exists OR just alert.
+            alert("No profile found to update. Please refresh.");
+            return;
+        }
         setLoading(true);
 
+        // ... existing save logic ...
         try {
             const { error } = await supabase
                 .from("profiles")
@@ -70,7 +79,17 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
         "6+ years",
     ];
 
-    if (!profile) return <div className="text-red-400">Error loading profile.</div>;
+    // NOTE: We do not return error div here anymore. We render the form with empty/default values if profile is null.
+    // We construct a temporary display profile from props if state is null, or just empty.
+    const displayProfile = profile || {
+        id: "missing",
+        full_name: "",
+        email: "No email found",
+        linkedin_url: "",
+        primary_role: "",
+        experience_level: "Student",
+        plan: "free"
+    };
 
     return (
         <section className="bg-gray-900/50 rounded-xl border border-gray-800 p-6">
@@ -116,14 +135,14 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
                             placeholder="John Doe"
                         />
                     ) : (
-                        <p className="text-lg font-semibold text-white break-words">{profile.full_name || "Not set"}</p>
+                        <p className="text-lg font-semibold text-white break-words">{displayProfile.full_name || "Not set"}</p>
                     )}
                 </div>
 
                 {/* Email - Read Only */}
                 <div className="space-y-2">
                     <label className="text-gray-400 text-sm font-medium">Email Address</label>
-                    <p className="text-lg font-semibold text-gray-300 break-all">{profile.email}</p>
+                    <p className="text-lg font-semibold text-gray-300 break-all">{displayProfile.email}</p>
                 </div>
 
                 {/* Primary Role */}
@@ -138,7 +157,7 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
                             placeholder="e.g. Frontend Developer"
                         />
                     ) : (
-                        <p className="text-lg font-semibold text-white break-words">{profile.primary_role || "Not set"}</p>
+                        <p className="text-lg font-semibold text-white break-words">{displayProfile.primary_role || "Not set"}</p>
                     )}
                 </div>
 
@@ -158,7 +177,7 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
                             ))}
                         </select>
                     ) : (
-                        <p className="text-lg font-semibold text-white">{profile.experience_level || "Not set"}</p>
+                        <p className="text-lg font-semibold text-white">{displayProfile.experience_level || "Not set"}</p>
                     )}
                 </div>
 
@@ -175,9 +194,9 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
                         />
                     ) : (
                         <p className="text-lg font-semibold text-indigo-400 truncate">
-                            {profile.linkedin_url ? (
-                                <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="hover:underline break-all">
-                                    {profile.linkedin_url}
+                            {displayProfile.linkedin_url ? (
+                                <a href={displayProfile.linkedin_url} target="_blank" rel="noopener noreferrer" className="hover:underline break-all">
+                                    {displayProfile.linkedin_url}
                                 </a>
                             ) : (
                                 <span className="text-gray-500">Not connected</span>
