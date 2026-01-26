@@ -31,7 +31,7 @@ export default async function Header() {
                   <LayoutDashboard size={16} /> Scanner
                 </Link>
                 <Link
-                  href="/profile"
+                  href="/history"
                   className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-2"
                 >
                   <HistoryIcon size={16} /> History

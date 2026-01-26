@@ -41,15 +41,15 @@ export default async function ProfilePage() {
                 <h1 className="text-4xl font-bold text-center">My Account</h1>
 
                 {/* Card 1 – Identity */}
-                <section className="flex items-center gap-6 p-6 bg-gray-900/50 rounded-xl border border-gray-800">
+                <section className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-gray-900/50 rounded-xl border border-gray-800 text-center sm:text-left">
                     <div className="flex-shrink-0 w-20 h-20 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-2xl font-bold">
                         {initials}
                     </div>
                     <div className="flex-1">
                         <p className="text-xl font-semibold">{profile?.full_name || "Unnamed User"}</p>
-                        <p className="text-gray-400">{profile?.email}</p>
+                        <p className="text-gray-400 break-all">{profile?.email}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${badge.color} text-black`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${badge.color} text-black mt-2 sm:mt-0`}>
                         {badge.label}
                     </span>
                 </section>
@@ -66,19 +66,19 @@ export default async function ProfilePage() {
                 </section>
 
                 {/* Card 3 – Actions */}
-                <section className="flex gap-4 justify-center">
+                <section className="flex flex-col sm:flex-row gap-4 justify-center">
                     <form action={async () => {
                         const supabase = await createClient();
                         await supabase.auth.signOut();
                         redirect("/login");
-                    }} className="">
-                        <button type="submit" className="px-6 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-medium">
+                    }} className="w-full sm:w-auto">
+                        <button type="submit" className="w-full sm:w-auto px-6 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-medium">
                             Sign Out
                         </button>
                     </form>
                     <button
                         onClick={() => alert("Password update flow not implemented yet.")}
-                        className="px-6 py-2 border border-indigo-400 hover:bg-indigo-900 rounded-lg font-medium"
+                        className="w-full sm:w-auto px-6 py-2 border border-indigo-400 hover:bg-indigo-900 rounded-lg font-medium"
                     >
                         Update Password
                     </button>
