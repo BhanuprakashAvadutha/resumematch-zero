@@ -1,8 +1,12 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import ScannerSection from "@/components/ScannerSection";
+import { cookies } from "next/headers";
 
 export default async function ScannerPage() {
+    const cookieStore = cookies();
+    console.log("[SCANNER] Request Cookies:", cookieStore.getAll().map(c => c.name).join(", "));
+
     const supabase = await createClient();
 
     console.log("[SCANNER] Checking session...");
