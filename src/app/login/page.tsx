@@ -1,13 +1,24 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useTransition, useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { login } from "@/app/auth/actions"; // Assuming this path
 import { Zap, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const errorParam = searchParams.get("error");
+        if (errorParam === "scanner_unauthorized") {
+            setError("You must be logged in to access the scanner.");
+        } else if (errorParam === "auth-code-error") {
+            setError("Authentication failed. Please try again.");
+        }
+    }, [searchParams]);
 
     const handleSubmit = async (formData: FormData) => {
         setError(null);

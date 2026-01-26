@@ -12,12 +12,15 @@ export async function login(formData: FormData) {
         password: formData.get("password") as string,
     };
 
+    console.log("[LOGIN] Attempting login for:", data.email);
     const { error } = await supabase.auth.signInWithPassword(data);
 
     if (error) {
+        console.error("[LOGIN] Error:", error.message);
         return { error: error.message };
     }
 
+    console.log("[LOGIN] Success. Redirecting to /scanner");
     revalidatePath("/", "layout");
     redirect("/scanner");
 }
