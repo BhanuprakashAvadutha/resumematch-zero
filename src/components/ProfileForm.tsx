@@ -15,9 +15,10 @@ interface Profile {
 
 interface ProfileFormProps {
     initialProfile: Profile | null;
+    userId: string;
 }
 
-export default function ProfileForm({ initialProfile }: ProfileFormProps) {
+export default function ProfileForm({ initialProfile, userId }: ProfileFormProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [profile, setProfile] = useState<Profile | null>(initialProfile);
     const [loading, setLoading] = useState(false);
@@ -33,38 +34,43 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
     const supabase = createClient();
 
     const handleSave = async () => {
-        // If no ID exists (shouldn't happen for logged in users if we create profile on fly), we need to handle it.
-        // Ideally, the server page ensures a row exists, or we use upsert.
-        // For now, assuming update on existing ID.
-        if (!profile) {
-            // Fallback: If for some reason profile is missing but user is logged in, we should probably Upsert based on auth user.
-            // But since we don't have user ID passed here efficiently, let's rely on server ensuring profile exists OR just alert.
-            alert("No profile found to update. Please refresh.");
-            return;
-        }
         setLoading(true);
 
-        // ... existing save logic ...
         try {
+            const updates = {
+                id: userId, // Ensure we link to the correct auth user
+                full_name: formData.full_name,
+                linkedin_url: formData.linkedin_url,
+                primary_role: formData.primary_role,
+                experience_level: formData.experience_level,
+                updated_at: new Date().toISOString(),
+            };
+
+            // We use upsert to handle both "Create" (if missing) and "Update" (if exists) scenarios robustly.
             const { error } = await supabase
                 .from("profiles")
-                .update({
-                    full_name: formData.full_name,
-                    linkedin_url: formData.linkedin_url,
-                    primary_role: formData.primary_role,
-                    experience_level: formData.experience_level,
-                })
-                .eq("id", profile.id);
+                .upsert(updates)
+                .select()
+                .single();
 
             if (error) throw error;
 
-            // Update local state
-            setProfile({ ...profile, ...formData });
+            // Update local state - strictly merge with existing or default
+            const newProfileState = profile
+                ? { ...profile, ...formData }
+                : {
+                    id: userId,
+                    email: "User", // We don't have email in formData, but it's fine for display until refresh
+                    plan: "free",
+                    ...formData
+                };
+
+            setProfile(newProfileState);
             setIsEditing(false);
-            alert("Profile updated successfully!");
+            alert("Profile saved successfully!");
         } catch (error) {
             console.error("Error updating profile:", error);
-            alert("Failed to update profile.");
+            alert("Failed to save profile.");
         } finally {
             setLoading(false);
         }

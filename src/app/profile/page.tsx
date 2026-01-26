@@ -75,7 +75,7 @@ export default async function ProfilePage() {
                 </div>
 
                 {/* Profile Form Component */}
-                <ProfileForm initialProfile={profile} />
+                <ProfileForm initialProfile={profile} userId={user.id} />
 
                 {/* Card 2 – Usage */}
                 <section className="p-6 bg-gray-900/50 rounded-xl border border-gray-800">
