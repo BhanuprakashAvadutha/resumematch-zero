@@ -13,14 +13,23 @@ export async function login(formData: FormData) {
     };
 
     console.log("[LOGIN] Attempting login for:", data.email);
-    const { error } = await supabase.auth.signInWithPassword(data);
+    const { data: authData, error } = await supabase.auth.signInWithPassword(data);
 
     if (error) {
         console.error("[LOGIN] Error:", error.message);
         return { error: error.message };
     }
 
-    console.log("[LOGIN] Success. Redirecting to /scanner");
+    if (!authData.session) {
+        console.error("[LOGIN] Success but NO SESSION returned. User might need email confirmation or session could not be created.");
+        console.log("[LOGIN] User Data:", JSON.stringify(authData.user, null, 2));
+        return { error: "Login failed. Please verify your email or try again." };
+    }
+
+    console.log("[LOGIN] Session created successfully.");
+    console.log("[LOGIN] Access Token length:", authData.session.access_token?.length || 0);
+    console.log("[LOGIN] Refresh Token length:", authData.session.refresh_token?.length || 0);
+
     revalidatePath("/", "layout");
     redirect("/scanner");
 }
