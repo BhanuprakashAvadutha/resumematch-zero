@@ -4,9 +4,21 @@ import { cookies } from "next/headers";
 export async function createClient() {
     const cookieStore = await cookies();
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+        console.error("❌ MISSING ENV VARIABES IN SERVER CLIENT");
+        console.error("URL:", !!supabaseUrl);
+        console.error("KEY:", !!supabaseKey);
+        // Return a client that essentially fails gracefully or throws a clear error
+        // For now, we allow it to proceed so we can see the specific error, 
+        // but the console logs above are critical for Vercel logs.
+    }
+
     return createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        supabaseUrl!,
+        supabaseKey!,
         {
             cookies: {
                 getAll() {

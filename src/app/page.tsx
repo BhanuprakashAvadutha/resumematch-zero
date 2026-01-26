@@ -4,8 +4,21 @@ import { Shield, Zap, TrendingUp } from "lucide-react";
 import ScannerSection from "@/components/ScannerSection";
 
 export default async function Home() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  let user = null;
+  let errorMsg = null;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      console.error("Auth Error in Home:", error.message);
+    }
+    user = data.user;
+  } catch (e: any) {
+    console.error("CRITICAL ERROR in Home Page:", e.message);
+    errorMsg = e.message;
+    // We swallow the error so the page renders the landing page instead of crashing
+  }
 
   // 1. IF LOGGED IN: Show Scanner
   if (user) {
@@ -17,9 +30,16 @@ export default async function Home() {
     );
   }
 
-  // 2. IF GUEST: Show Marketing Landing Page
+  // 2. IF GUEST (or Error): Show Marketing Landing Page
   return (
     <main className="min-h-screen bg-[var(--bg-default)] text-white font-sans selection:bg-blue-500/30">
+      {/* ERROR BANNER FOR DEBUGGING */}
+      {errorMsg && (
+        <div className="bg-red-900/50 text-red-200 p-2 text-center text-sm font-mono border-b border-red-500/30">
+          ⚠️ SERVER ERROR: {errorMsg}. Check Vercel Logs.
+        </div>
+      )}
+
       {/* Hero */}
       <section className="relative pt-32 pb-20 px-6 text-center overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />

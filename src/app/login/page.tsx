@@ -1,136 +1,133 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
-import { Loader2, Zap } from 'lucide-react';
+import { createBrowserClient } from '@supabase/ssr';
+import { Loader2, Zap, Bug } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
-    const [mode, setMode] = useState<'signin' | 'signup'>('signin');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [fullName, setFullName] = useState('');
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<any>(null);
+    const [debugLog, setDebugLog] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const log = (message: string) => {
+        console.log(`[LOGIN DEBUG] ${message}`);
+        setDebugLog(prev => [...prev, `${new Date().toISOString().slice(11, 19)} - ${message}`]);
+    };
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setDebugLog([]);
         setIsLoading(true);
 
-        // Validation
-        if (mode === 'signup' && fullName.trim().length < 2) {
-            setError('Please enter your full name.');
-            setIsLoading(false);
-            return;
-        }
-        if (password.length < 8) {
-            setError('Password must be at least 8 characters.');
+        log(`Starting login for: ${email}`);
+
+        // Step 1: Check environment variables
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        log(`SUPABASE_URL exists: ${!!supabaseUrl}`);
+        log(`SUPABASE_KEY exists: ${!!supabaseKey}`);
+
+        if (!supabaseUrl || !supabaseKey) {
+            const envError = { message: "MISSING ENV VARS", supabaseUrl: !!supabaseUrl, supabaseKey: !!supabaseKey };
+            setError(envError);
             setIsLoading(false);
             return;
         }
 
+        // Step 2: Create Supabase client
+        log("Creating Supabase browser client...");
+        let supabase;
         try {
-            const supabase = createClient();
+            supabase = createBrowserClient(supabaseUrl, supabaseKey);
+            log("Supabase client created successfully");
+        } catch (clientError: any) {
+            log(`FAILED to create client: ${clientError.message}`);
+            setError({ type: "CLIENT_CREATION_FAILED", error: clientError });
+            setIsLoading(false);
+            return;
+        }
 
-            if (mode === 'signup') {
-                // Sign up
-                const { error: signUpError } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: { full_name: fullName },
-                    },
-                });
-                if (signUpError) {
-                    setError(signUpError.message);
-                    setIsLoading(false);
-                    return;
-                }
+        // Step 3: Attempt sign in
+        log(`Calling signInWithPassword...`);
+        try {
+            const { data, error: signInError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
-                // Auto sign-in after signup
-                const { error: signInError } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
+            log(`Sign in response received`);
+            log(`Data: ${JSON.stringify(data)}`);
+            log(`Error: ${signInError ? JSON.stringify(signInError) : 'null'}`);
+
+            if (signInError) {
+                log(`SIGN IN FAILED: ${signInError.message}`);
+                setError({
+                    type: "SIGN_IN_ERROR",
+                    message: signInError.message,
+                    status: signInError.status,
+                    fullError: signInError,
                 });
-                if (signInError) {
-                    setError(signInError.message);
-                    setIsLoading(false);
-                    return;
-                }
-            } else {
-                // Sign in
-                const { error: signInError } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                });
-                if (signInError) {
-                    setError(signInError.message);
-                    setIsLoading(false);
-                    return;
-                }
+                setIsLoading(false);
+                return;
             }
 
-            // FORCE HARD REFRESH - This is the fix!
+            if (!data.user) {
+                log("No user returned - possible email confirmation required");
+                setError({
+                    type: "NO_USER_RETURNED",
+                    message: "Sign in succeeded but no user was returned. Check if email confirmation is enabled.",
+                    data: data,
+                });
+                setIsLoading(false);
+                return;
+            }
+
+            // Step 4: SUCCESS!
+            log(`SUCCESS! User ID: ${data.user.id}`);
+            log(`User Email: ${data.user.email}`);
+            log("Triggering hard redirect...");
+
+            alert("LOGIN SUCCESS! Redirecting to Dashboard...");
             window.location.href = "/";
 
-        } catch (err: any) {
-            setError(err.message || 'Something went wrong. Please try again.');
+        } catch (catchError: any) {
+            log(`CATCH ERROR: ${catchError.message}`);
+            setError({
+                type: "UNEXPECTED_ERROR",
+                message: catchError.message,
+                stack: catchError.stack,
+            });
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] px-4">
-            <div className="w-full max-w-sm">
+        <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] px-4 py-8">
+            <div className="w-full max-w-md">
                 {/* Logo */}
-                <div className="text-center mb-8">
+                <div className="text-center mb-6">
                     <Link href="/" className="inline-flex items-center gap-2">
                         <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
                             <Zap size={20} className="text-white" fill="currentColor" />
                         </div>
                         <span className="text-xl font-bold text-white">ResuMatch Zero</span>
                     </Link>
+                    <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded text-yellow-400 text-xs">
+                        <Bug size={12} /> DEBUG MODE
+                    </div>
                 </div>
 
                 {/* Card */}
                 <div className="bg-[#111118] border border-gray-800 rounded-2xl p-6">
-                    {/* Toggle */}
-                    <div className="flex mb-6 bg-gray-900 rounded-lg p-1">
-                        <button
-                            type="button"
-                            onClick={() => { setMode('signin'); setError(null); }}
-                            className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${mode === 'signin' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
-                                }`}
-                        >
-                            Sign In
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => { setMode('signup'); setError(null); }}
-                            className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${mode === 'signup' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
-                                }`}
-                        >
-                            Sign Up
-                        </button>
-                    </div>
+                    <h1 className="text-xl font-bold text-white mb-4">Sign In (Debug)</h1>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {mode === 'signup' && (
-                            <div>
-                                <label className="block text-sm text-gray-400 mb-1">Full Name</label>
-                                <input
-                                    type="text"
-                                    value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
-                                    placeholder="John Doe"
-                                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
-                                    required={mode === 'signup'}
-                                />
-                            </div>
-                        )}
-
+                    <form onSubmit={handleLogin} className="space-y-4">
                         <div>
                             <label className="block text-sm text-gray-400 mb-1">Email</label>
                             <input
@@ -138,7 +135,7 @@ export default function LoginPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@example.com"
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
                                 required
                             />
                         </div>
@@ -150,49 +147,59 @@ export default function LoginPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
                                 required
-                                minLength={8}
                             />
-                            {mode === 'signup' && (
-                                <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
-                            )}
                         </div>
-
-                        {error && (
-                            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm text-center">
-                                {error}
-                            </div>
-                        )}
 
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                            className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
                         >
                             {isLoading ? (
                                 <>
                                     <Loader2 className="animate-spin" size={18} />
-                                    {mode === 'signin' ? 'Signing in...' : 'Creating account...'}
+                                    Signing in...
                                 </>
                             ) : (
-                                mode === 'signin' ? 'Sign In' : 'Create Account'
+                                'Sign In'
                             )}
                         </button>
                     </form>
 
-                    {mode === 'signin' && (
-                        <div className="mt-4 text-center">
-                            <Link href="/forgot-password" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">
-                                Forgot password?
-                            </Link>
-                        </div>
-                    )}
+                    <div className="mt-4 text-center">
+                        <span className="text-gray-500 text-sm">Don't have an account? </span>
+                        <Link href="/signup" className="text-blue-400 hover:text-blue-300 text-sm font-medium">
+                            Sign Up
+                        </Link>
+                    </div>
                 </div>
 
-                <p className="text-center text-gray-600 text-xs mt-6">
-                    By continuing, you agree to our Terms of Service.
-                </p>
+                {/* Debug Log */}
+                {debugLog.length > 0 && (
+                    <div className="mt-4 bg-gray-900 border border-gray-700 rounded-lg p-4">
+                        <h3 className="text-sm font-bold text-green-400 mb-2">📋 Debug Log</h3>
+                        <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono">
+                            {debugLog.join('\n')}
+                        </pre>
+                    </div>
+                )}
+
+                {/* Error Display */}
+                {error && (
+                    <div className="mt-4 bg-red-500/10 border-2 border-red-500 rounded-lg p-4">
+                        <h3 className="text-sm font-bold text-red-400 mb-2">🚨 ERROR DUMP</h3>
+                        <pre className="text-xs text-red-300 whitespace-pre-wrap font-mono overflow-auto max-h-64">
+                            {JSON.stringify(error, null, 2)}
+                        </pre>
+                    </div>
+                )}
+
+                {/* Instructions */}
+                <div className="mt-4 text-xs text-gray-500 text-center">
+                    Open browser DevTools (F12) → Console tab to see full logs
+                </div>
             </div>
         </div>
     );
