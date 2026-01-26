@@ -33,6 +33,13 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing file or description" }, { status: 400 });
         }
 
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized. Please login." }, { status: 401 });
+        }
+
         // 2. Parse PDF
         let resumeText = "";
         try {

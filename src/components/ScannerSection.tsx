@@ -43,7 +43,7 @@ export default function ScannerSection() {
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-white mb-4">
                     Resume Command Center
                 </h1>
-                <p className="text-gray-400">Public Access - No Login Required</p>
+                <p className="text-gray-400">Enterprise Grade Analysis • GPT-4 Powered</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
