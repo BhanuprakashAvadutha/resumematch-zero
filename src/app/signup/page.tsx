@@ -20,7 +20,7 @@ export default function SignupPage() {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     };
 
-    // Password Strength Calculation
+    // Password Strength Calculation and Logic
     useEffect(() => {
         let score = 0;
         if (password.length > 6) score += 1;
@@ -58,7 +58,7 @@ export default function SignupPage() {
         });
 
         if (signUpError) {
-            // Enterprise Grade Error Handling
+            // Enterprise Grade specific error handling
             if (signUpError.message.includes("already registered")) {
                 setError("This email is already associated with an account. Please log in.");
             } else {
@@ -112,7 +112,7 @@ export default function SignupPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
                                 >
                                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
@@ -130,7 +130,7 @@ export default function SignupPage() {
                                             />
                                         ))}
                                     </div>
-                                    <p className="text-xs text-right text-gray-500">
+                                    <p className="text-xs text-right text-gray-500 font-medium">
                                         {passwordScore <= 2 ? "Weak" : passwordScore <= 3 ? "Medium" : "Strong"}
                                     </p>
                                 </div>
