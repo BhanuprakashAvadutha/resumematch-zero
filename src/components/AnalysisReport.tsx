@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Check, X, Copy, CheckCircle2, Lightbulb } from "lucide-react";
+import { Check, X, Copy, CheckCircle2, Lightbulb, Download, BarChart3, BrainCircuit, Mic } from "lucide-react";
 
 export default function AnalysisReport({ result }: { result: any }) {
     const [copiedMissing, setCopiedMissing] = useState(false);
@@ -24,27 +24,67 @@ export default function AnalysisReport({ result }: { result: any }) {
         }
     };
 
+    // --- LOGIC: Inferred Mini-Stats (Mock Logic for Visuals) ---
+    // In a real app, this would be computed by the backend classifier.
+    // Here we just infer based on basic keyword matching for demonstration.
+    const hardSkillsCount = result.matched_keywords?.filter((k: string) =>
+        ['sql', 'python', 'react', 'aws', 'analysis', 'data', 'code', 'design'].some(t => k.includes(t))
+    ).length || Math.floor(result.matched_keywords?.length * 0.7) || 0;
+
+    const softSkillsCount = (result.matched_keywords?.length || 0) - hardSkillsCount;
+
+    // Top 3 Missing Keywords for Guide
+    const topMissing = result.missing_keywords?.slice(0, 3).join(", ") || "essential keywords";
+
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" id="analysis-report">
             {/* Header */}
             <div className="flex justify-between items-center mb-8 pb-6 border-b border-gray-800">
                 <div>
                     <h2 className="text-2xl font-bold text-white">Analysis Report</h2>
-                    <p className="text-sm text-gray-400">Logic-Based Analysis</p>
+                    <p className="text-sm text-gray-400">Logic-Based Analysis v2.0</p>
                 </div>
-                {/* Download button removed as per request */}
+                <button
+                    onClick={() => window.print()}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors no-print"
+                >
+                    <Download size={16} /> Export PDF
+                </button>
             </div>
 
-            {/* Score */}
-            <div className="text-center mb-10">
-                <div className={`text-7xl font-black ${getScoreColor(result.score)}`}>
-                    {result.score}%
+            {/* Score Ring & Mini Stats */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-10">
+                <div className="text-center relative">
+                    <div className={`text-7xl font-black ${getScoreColor(result.score)}`}>
+                        {result.score}%
+                    </div>
+                    <p className="text-gray-400 mt-2 font-medium">ATS Match Score</p>
                 </div>
-                <p className="text-gray-400 mt-2">ATS Match Score</p>
+
+                {/* Mini Stats Cards */}
+                <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+                    <div className="bg-gray-800/50 p-3 rounded-xl border border-gray-700 flex flex-col items-center justify-center">
+                        <BrainCircuit size={20} className="text-blue-400 mb-1" />
+                        <span className="text-xl font-bold text-white">{hardSkillsCount}</span>
+                        <span className="text-xs text-gray-400">Hard Skills</span>
+                    </div>
+                    <div className="bg-gray-800/50 p-3 rounded-xl border border-gray-700 flex flex-col items-center justify-center">
+                        <Mic size={20} className="text-purple-400 mb-1" />
+                        <span className="text-xl font-bold text-white">{softSkillsCount}</span>
+                        <span className="text-xs text-gray-400">Soft Skills</span>
+                    </div>
+                    <div className="bg-gray-800/50 p-3 rounded-xl border border-gray-700 col-span-2 flex items-center justify-between px-6">
+                        <div className="flex items-center gap-2">
+                            <BarChart3 size={20} className="text-emerald-400" />
+                            <span className="text-xs text-gray-400">Total Keywords</span>
+                        </div>
+                        <span className="text-xl font-bold text-white">{result.matched_keywords?.length || 0}</span>
+                    </div>
+                </div>
             </div>
 
             {/* Keywords Grid */}
-            <div className="grid grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {/* Matched Column */}
                 <div>
                     <div className="flex items-center justify-between mb-3">
@@ -53,7 +93,7 @@ export default function AnalysisReport({ result }: { result: any }) {
                         </h3>
                         <button
                             onClick={() => copyToClipboard(result.matched_keywords, 'matched')}
-                            className="text-gray-500 hover:text-white transition-colors"
+                            className="text-gray-500 hover:text-white transition-colors no-print"
                             title="Copy list"
                         >
                             {copiedMatched ? <span className="text-xs text-emerald-400">Copied!</span> : <Copy size={14} />}
@@ -76,7 +116,7 @@ export default function AnalysisReport({ result }: { result: any }) {
                         </h3>
                         <button
                             onClick={() => copyToClipboard(result.missing_keywords, 'missing')}
-                            className="text-gray-500 hover:text-white transition-colors"
+                            className="text-gray-500 hover:text-white transition-colors no-print"
                             title="Copy list"
                         >
                             {copiedMissing ? <span className="text-xs text-emerald-400">Copied!</span> : <Copy size={14} />}
@@ -93,49 +133,35 @@ export default function AnalysisReport({ result }: { result: any }) {
             </div>
 
             {/* Summary & Pro Tips */}
-            <div className="space-y-6">
+            <div className="space-y-6 break-inside-avoid">
                 <div className="bg-blue-500/5 border border-blue-500/20 p-5 rounded-xl">
                     <h3 className="text-blue-400 font-bold mb-2">📊 Analysis Summary</h3>
                     <p className="text-gray-300 leading-relaxed text-sm">{result.feedback}</p>
                 </div>
 
-                {/* Conditional: Old AI bullets OR New Pro Tips */}
-                {result.rewritten_bullets && result.rewritten_bullets.length > 0 ? (
-                    <div>
-                        <h3 className="text-gray-200 font-bold mb-4">Suggested Rewrites</h3>
-                        <div className="space-y-4">
-                            {result.rewritten_bullets.map((item: any, i: number) => (
-                                <div key={i} className="bg-gray-900/50 border border-gray-800 p-4 rounded-xl">
-                                    <p className="text-xs text-red-400 mb-2 line-through opacity-70">{item.original}</p>
-                                    <div className="flex gap-3 items-start">
-                                        <CheckCircle2 size={16} className="text-emerald-500 mt-1 shrink-0" />
-                                        <p className="text-gray-200 text-sm">{item.new}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ) : (
-                    <div className="bg-gray-900 border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.1)] p-6 rounded-xl">
-                        <h3 className="text-purple-400 font-bold mb-4 flex items-center gap-2">
-                            <Lightbulb size={20} /> 📈 Optimization Guide
-                        </h3>
-                        <ul className="space-y-3 text-gray-300 text-sm">
-                            <li className="flex gap-3">
-                                <span className="text-purple-500 font-bold">1.</span>
-                                <span><strong>Quantify your impact.</strong> Use numbers (e.g., "Increased sales by 20%") instead of generic phrases.</span>
-                            </li>
-                            <li className="flex gap-3">
-                                <span className="text-purple-500 font-bold">2.</span>
-                                <span><strong>Inject the missing keywords.</strong> Take the red keywords above and add them to your Skills or Experience section.</span>
-                            </li>
-                            <li className="flex gap-3">
-                                <span className="text-purple-500 font-bold">3.</span>
-                                <span><strong>Clickable Contact Info.</strong> Ensure your email and LinkedIn URL are clickable hyperlinks.</span>
-                            </li>
-                        </ul>
-                    </div>
-                )}
+                <div className="bg-gray-900 border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.1)] p-6 rounded-xl">
+                    <h3 className="text-purple-400 font-bold mb-4 flex items-center gap-2">
+                        <Lightbulb size={20} /> 📈 Optimization Guide
+                    </h3>
+                    <ul className="space-y-4 text-gray-300 text-sm">
+                        <li className="flex gap-3">
+                            <span className="text-purple-500 font-bold">1.</span>
+                            <span>
+                                <strong>Inject specific keywords.</strong> Add these missing keywords to your
+                                <span className="bg-purple-500/20 text-purple-300 px-1 mx-1 rounded text-xs border border-purple-500/30">SKILLS</span>
+                                section: <span className="text-white font-medium italic">{topMissing}</span>.
+                            </span>
+                        </li>
+                        <li className="flex gap-3">
+                            <span className="text-purple-500 font-bold">2.</span>
+                            <span><strong>Quantify impact.</strong> Use numbers (e.g., "Improved X by 20%") to prove your Hard Skills.</span>
+                        </li>
+                        <li className="flex gap-3">
+                            <span className="text-purple-500 font-bold">3.</span>
+                            <span><strong>Clickable Info.</strong> Ensure your email and LinkedIn are active hyperlinks.</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     );
