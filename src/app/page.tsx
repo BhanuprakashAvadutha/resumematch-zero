@@ -11,25 +11,25 @@ export default async function Home() {
     <main className="min-h-screen bg-[var(--bg-default)] text-white pt-20 flex flex-col">
       {user ? (
         // --- LOGGED IN DASHBOARD ---
-        <div className="max-w-5xl mx-auto w-full px-6 py-12 flex-1 flex flex-col">
-          <div className="mb-10 text-center sm:text-left">
-            <h1 className="text-3xl font-bold text-white mb-2">Welcome back!</h1>
-            <p className="text-gray-400">What would you like to do today?</p>
+        <div className="max-w-5xl mx-auto w-full px-6 py-8 md:py-12 flex-1 flex flex-col">
+          <div className="mb-8 md:mb-10 text-center sm:text-left">
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Welcome back!</h1>
+            <p className="text-gray-400 text-sm md:text-base">What would you like to do today?</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* 1. Scanner Card */}
             <Link
               href="/scanner"
-              className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-8 transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/20"
+              className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-6 md:p-8 transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/20 active:scale-95"
             >
               <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-3xl opacity-50 group-hover:opacity-75 transition-opacity" />
               <div className="relative z-10">
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white mb-6">
                   <LayoutDashboard size={24} />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2">New Scan</h3>
-                <p className="text-blue-100/80 mb-6">Analyze a resume against a job description.</p>
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-2">New Scan</h3>
+                <p className="text-blue-100/80 mb-6 text-sm">Analyze a resume against a job description.</p>
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg text-sm font-semibold group-hover:bg-white/20 transition-colors">
                   Launch Scanner <ArrowRight size={16} />
                 </div>
@@ -39,25 +39,25 @@ export default async function Home() {
             {/* 2. History Card */}
             <Link
               href="/history"
-              className="group bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-3xl p-8 transition-all hover:bg-gray-800/50"
+              className="group bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-3xl p-6 md:p-8 transition-all hover:bg-gray-800/50 active:scale-95"
             >
               <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-400 mb-6 group-hover:bg-purple-500/20 group-hover:text-purple-300 transition-colors">
                 <History size={24} />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Scan History</h3>
-              <p className="text-gray-400">View past analyses and track your improvements over time.</p>
+              <h3 className="text-lg md:text-xl font-bold text-white mb-2">Scan History</h3>
+              <p className="text-gray-400 text-sm">View past analyses and track your improvements over time.</p>
             </Link>
 
             {/* 3. Profile Card */}
             <Link
               href="/profile"
-              className="group bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-3xl p-8 transition-all hover:bg-gray-800/50"
+              className="group bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-3xl p-6 md:p-8 transition-all hover:bg-gray-800/50 active:scale-95"
             >
               <div className="w-12 h-12 bg-gray-700/30 rounded-xl flex items-center justify-center text-gray-400 mb-6 group-hover:bg-gray-700/50 group-hover:text-white transition-colors">
                 <User size={24} />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">My Profile</h3>
-              <p className="text-gray-400">Manage account settings and subscription details.</p>
+              <h3 className="text-lg md:text-xl font-bold text-white mb-2">My Profile</h3>
+              <p className="text-gray-400 text-sm">Manage account settings and subscription details.</p>
             </Link>
           </div>
         </div>
@@ -65,18 +65,18 @@ export default async function Home() {
         // --- GUEST LANDING PAGE ---
         <div>
           {/* Hero Section */}
-          <section className="flex flex-col items-center justify-center px-6 py-20 text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-400 font-medium text-sm mb-8 border border-blue-500/20">
-              <Zap size={16} fill="currentColor" />
+          <section className="flex flex-col items-center justify-center px-6 py-12 md:py-20 text-center max-w-5xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-400 font-medium text-xs md:text-sm mb-6 md:mb-8 border border-blue-500/20">
+              <Zap size={14} className="md:w-4 md:h-4" fill="currentColor" />
               <span>New: Enterprise-Grade V2.0 Engine</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-7xl font-bold tracking-tighter mb-4 md:mb-6 bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">
               Beat the ATS. <br />
               <span className="text-blue-500">Land the Interview.</span>
             </h1>
 
-            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base md:text-xl text-gray-400 mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed px-4">
               Our logic engine scans your resume against job descriptions to reveal exactly what's missing—instantly.
             </p>
 
@@ -85,8 +85,8 @@ export default async function Home() {
           </section>
 
           {/* Features Grid */}
-          <section className="px-6 py-20 border-t border-white/5 bg-white/[0.02]">
-            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          <section className="px-6 py-12 md:py-20 border-t border-white/5 bg-white/[0.02]">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               {[
                 {
                   icon: <Zap className="text-yellow-400" size={32} />,
@@ -104,12 +104,12 @@ export default async function Home() {
                   desc: "Your data is encrypted and secure. We never share your resume with third parties."
                 }
               ].map((feature, i) => (
-                <div key={i} className="p-8 bg-gray-900/50 border border-gray-800 rounded-2xl hover:border-gray-700 transition-colors">
-                  <div className="mb-6 bg-gray-950 w-16 h-16 rounded-xl flex items-center justify-center border border-gray-800">
+                <div key={i} className="p-6 md:p-8 bg-gray-900/50 border border-gray-800 rounded-2xl hover:border-gray-700 transition-colors">
+                  <div className="mb-4 md:mb-6 bg-gray-950 w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center border border-gray-800">
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
-                  <p className="text-gray-400 leading-relaxed">{feature.desc}</p>
+                  <h3 className="text-lg md:text-xl font-bold text-white mb-2 md:mb-3">{feature.title}</h3>
+                  <p className="text-sm md:text-base text-gray-400 leading-relaxed">{feature.desc}</p>
                 </div>
               ))}
             </div>

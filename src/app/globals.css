@@ -5,6 +5,7 @@
 :root {
     --bg-default: #0a0a0f;
     --bg-surface: #111118;
+    --safe-area-inset-bottom: env(safe-area-inset-bottom);
 }
 
 * {
@@ -15,6 +16,8 @@
 
 html {
     scroll-behavior: smooth;
+    touch-action: manipulation;
+    /* Improves touch response delay */
 }
 
 body {
@@ -23,9 +26,18 @@ body {
     min-height: 100vh;
 }
 
+/* Base input styles for better mobile experience */
+input,
+select,
+textarea {
+    font-size: 16px !important;
+    /* Prevents iOS zoom on focus */
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
+    /* Thinner on mobile feels cleaner */
 }
 
 ::-webkit-scrollbar-track {
@@ -41,7 +53,7 @@ body {
     background: #444;
 }
 
-/* Focus styles */
+/* Enhanced Focus styles for accessibility */
 *:focus-visible {
     outline: 2px solid #3b82f6;
     outline-offset: 2px;

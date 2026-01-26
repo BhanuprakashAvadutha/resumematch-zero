@@ -2,6 +2,7 @@
 import { Zap, LogOut, User, History as HistoryIcon, LayoutDashboard, Menu } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { logout } from "@/app/auth/actions";
+import MobileMenu from "@/components/MobileMenu";
 
 export default async function Header() {
   const supabase = await createClient();
@@ -23,7 +24,7 @@ export default async function Header() {
           {user ? (
             <>
               {/* Desktop Nav */}
-              <nav className="flex items-center gap-6">
+              <nav className="hidden md:flex items-center gap-6">
                 <Link
                   href="/scanner"
                   className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-2"
@@ -46,7 +47,7 @@ export default async function Header() {
 
               <div className="h-6 w-px bg-gray-800 hidden md:block" />
 
-              <form action={logout}>
+              <form action={logout} className="hidden md:block">
                 <button
                   className="text-gray-400 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-gray-800/50"
                   title="Sign Out"
@@ -54,6 +55,9 @@ export default async function Header() {
                   <LogOut size={18} />
                 </button>
               </form>
+
+              {/* Mobile Nav */}
+              <MobileMenu user={user} />
             </>
           ) : (
             <div className="flex items-center gap-4">

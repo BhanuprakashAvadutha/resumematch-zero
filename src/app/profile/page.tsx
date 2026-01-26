@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
+import ProfileForm from "@/components/ProfileForm";
 
 export default async function ProfilePage() {
     const supabase = await createClient();
@@ -14,7 +15,7 @@ export default async function ProfilePage() {
     // Fetch user profile details
     const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name,email,plan")
+        .select("id,full_name,email,plan,linkedin_url,primary_role,experience_level")
         .eq("id", user.id)
         .single();
 
@@ -24,35 +25,21 @@ export default async function ProfilePage() {
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id);
 
-    const initials = profile?.full_name
-        ? profile.full_name
-            .split(" ")
-            .map((n: string) => n[0])
-            .join("")
-            .toUpperCase()
-        : "U";
-
     const badge = profile?.plan === "pro" ? { label: "Pro", color: "bg-yellow-400" } : { label: "Free Tier", color: "bg-gray-500" };
 
     return (
         <main className="min-h-screen bg-[var(--bg-default)] text-white py-12 px-4">
             <div className="max-w-4xl mx-auto space-y-8">
                 {/* Header */}
-                <h1 className="text-4xl font-bold text-center">My Account</h1>
-
-                {/* Card 1 – Identity */}
-                <section className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-gray-900/50 rounded-xl border border-gray-800 text-center sm:text-left">
-                    <div className="flex-shrink-0 w-20 h-20 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-2xl font-bold">
-                        {initials}
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-xl font-semibold">{profile?.full_name || "Unnamed User"}</p>
-                        <p className="text-gray-400 break-all">{profile?.email}</p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${badge.color} text-black mt-2 sm:mt-0`}>
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-4xl font-bold">My Account</h1>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${badge.color} text-black`}>
                         {badge.label}
                     </span>
-                </section>
+                </div>
+
+                {/* Profile Form Component */}
+                <ProfileForm initialProfile={profile} />
 
                 {/* Card 2 – Usage */}
                 <section className="p-6 bg-gray-900/50 rounded-xl border border-gray-800">
@@ -66,21 +53,26 @@ export default async function ProfilePage() {
                 </section>
 
                 {/* Card 3 – Actions */}
-                <section className="flex flex-col sm:flex-row gap-4 justify-center">
+                <section className="flex flex-col sm:flex-row gap-4 justify-center pt-8 border-t border-gray-800">
                     <form action={async () => {
+                        "use server";
                         const supabase = await createClient();
                         await supabase.auth.signOut();
                         redirect("/login");
                     }} className="w-full sm:w-auto">
-                        <button type="submit" className="w-full sm:w-auto px-6 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-medium">
+                        <button type="submit" className="w-full sm:w-auto px-6 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-medium transition-colors">
                             Sign Out
                         </button>
                     </form>
                     <button
-                        onClick={() => alert("Password update flow not implemented yet.")}
-                        className="w-full sm:w-auto px-6 py-2 border border-indigo-400 hover:bg-indigo-900 rounded-lg font-medium"
+                        // onClick={() => alert("Password update flow not implemented yet.")} 
+                        // Note: This is a server component, standard onClick won't work without a client component wrapper or form action.
+                        // Leaving as static styling for now or standard button type="button" if we were in client context.
+                        type="button"
+                        className="w-full sm:w-auto px-6 py-2 border border-indigo-400 hover:bg-indigo-900 rounded-lg font-medium transition-colors opacity-50 cursor-not-allowed"
+                        disabled
                     >
-                        Update Password
+                        Update Password (Coming Soon)
                     </button>
                 </section>
             </div>
