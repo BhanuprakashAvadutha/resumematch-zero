@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Upload, FileText, CheckCircle2, AlertCircle, Zap, Sparkles } from "lucide-react";
 import AnalysisReport from "@/components/AnalysisReport";
 
-export default function ScannerSection({ userName }: { userName: string }) {
+export default function ScannerSection() {
     const [file, setFile] = useState<File | null>(null);
     const [jobDescription, setJobDescription] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -40,12 +40,10 @@ export default function ScannerSection({ userName }: { userName: string }) {
     return (
         <section className="max-w-6xl mx-auto px-6 py-12">
             <div className="text-center mb-12">
-                <div className="inline-block px-4 py-1.5 mb-4 bg-blue-500/10 border border-blue-500/20 rounded-full">
-                    <span className="text-blue-400 text-sm font-medium">Welcome back, {userName}</span>
-                </div>
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-white mb-4">
                     Resume Command Center
                 </h1>
+                <p className="text-gray-400">Public Access - No Login Required</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
