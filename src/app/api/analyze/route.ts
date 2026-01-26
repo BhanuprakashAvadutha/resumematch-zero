@@ -81,9 +81,14 @@ export async function POST(req: Request) {
         if (jobKeywords.size > 0) {
             score = Math.round((matched_keywords.length / jobKeywords.size) * 100);
         }
+
+        // USER REQUEST: Minimum score should not be less than 50%
+        // We will base this on if there is ANY match at all, or just flat 50?
+        // "the minimun score should not less than 50 percent" implies a hard floor.
+        // We'll keep it simple: Ensure score is at least 50.
+        if (score < 50) score = 50;
+
         if (score > 100) score = 100;
-        // Boost low scores slightly to reduce discouragement
-        if (score > 0 && score < 15) score = 15;
 
         // 5. Generate Static Feedback
         let feedback = "";
