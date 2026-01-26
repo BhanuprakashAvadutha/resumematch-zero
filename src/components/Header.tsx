@@ -23,7 +23,7 @@ export default async function Header() {
           {user ? (
             <>
               {/* Desktop Nav */}
-              <nav className="hidden md:flex items-center gap-6">
+              <nav className="flex items-center gap-6">
                 <Link
                   href="/scanner"
                   className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-2"

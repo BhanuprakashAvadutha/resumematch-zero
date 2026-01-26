@@ -42,18 +42,18 @@ export default function AnalysisReport({ result, onReset }: { result: any, onRes
                 </div>
                 <div className="flex gap-2 no-print">
                     <button
+                        onClick={onReset}
+                        className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20 text-sm font-medium"
+                        title="Start New Analysis"
+                    >
+                        <RotateCcw size={16} /> New Scan
+                    </button>
+                    <button
                         onClick={() => window.print()}
                         className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors border border-gray-700"
                         title="Export PDF"
                     >
                         <Download size={18} />
-                    </button>
-                    <button
-                        onClick={onReset}
-                        className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20"
-                        title="Start New Analysis"
-                    >
-                        <RotateCcw size={18} />
                     </button>
                 </div>
             </div>
