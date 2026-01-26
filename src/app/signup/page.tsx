@@ -1,117 +1,63 @@
 "use client";
 
-import { useTransition, useState } from "react";
-import Link from "next/link";
-import { signup } from "@/app/auth/actions";
-import { Zap, Loader2, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 export default function SignupPage() {
-    const [isPending, startTransition] = useTransition();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
     const router = useRouter();
+    const supabase = createClient();
 
-    const handleSubmit = async (formData: FormData) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         setError(null);
-        startTransition(async () => {
-            const result = await signup(formData);
-            if (result?.error) {
-                setError(result.error);
-            } else if (result?.success) {
-                setSuccess(true);
-                // Optional: Redirect immediately if your Supabase settings allow it (e.g. no confirm required)
-                // router.push("/scanner"); 
-            }
+        const { error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
         });
+        if (signUpError) {
+            setError(signUpError.message);
+        } else {
+            // After successful sign‑up Supabase sends a magic link/email verification.
+            // For simplicity we redirect to login where the user can sign in.
+            router.push("/login");
+        }
     };
 
-    if (success) {
-        return (
-            <main className="min-h-screen flex items-center justify-center p-6 bg-[var(--bg-default)]">
-                <div className="w-full max-w-md text-center">
-                    <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 backdrop-blur-xl">
-                        <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-green-400">
-                            <CheckCircle2 size={32} />
-                        </div>
-                        <h2 className="text-2xl font-bold text-white mb-4">Account Created!</h2>
-                        <p className="text-gray-400 mb-8">
-                            Please check your email to confirm your account, or try logging in if you have confirmation disabled.
-                        </p>
-                        <Link
-                            href="/login"
-                            className="inline-block w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all"
-                        >
-                            Go to Login
-                        </Link>
-                    </div>
-                </div>
-            </main>
-        );
-    }
-
     return (
-        <main className="min-h-screen flex items-center justify-center p-6 bg-[var(--bg-default)]">
-            <div className="w-full max-w-md">
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 mb-4">
-                        <Zap size={24} fill="currentColor" />
-                    </div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-                    <p className="text-gray-400">Join the top 1% of candidates today</p>
-                </div>
-
-                <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 backdrop-blur-xl">
-                    <form action={handleSubmit} className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-2">
-                                Email Address
-                            </label>
-                            <input
-                                name="email"
-                                type="email"
-                                required
-                                placeholder="you@example.com"
-                                className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-2">
-                                Password
-                            </label>
-                            <input
-                                name="password"
-                                type="password"
-                                required
-                                placeholder="••••••••"
-                                className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
-                            />
-                        </div>
-
-                        {error && (
-                            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center">
-                                {error}
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={isPending}
-                            className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                            {isPending ? <Loader2 className="animate-spin" size={20} /> : "Create Account"}
-                        </button>
-                    </form>
-
-                    <div className="mt-6 text-center text-sm text-gray-400">
-                        Already have an account?{" "}
-                        <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium">
-                            Sign in
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        </main>
+        <div className="flex min-h-screen items-center justify-center bg-gray-900 text-white">
+            <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4 p-6 bg-gray-800 rounded-lg shadow-lg">
+                <h2 className="text-2xl font-bold text-center mb-4">Sign Up</h2>
+                {error && <p className="text-red-500 text-center">{error}</p>}
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full rounded px-3 py-2 bg-gray-700 focus:outline-none"
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full rounded px-3 py-2 bg-gray-700 focus:outline-none"
+                />
+                <button
+                    type="submit"
+                    className="w-full rounded bg-indigo-600 hover:bg-indigo-500 py-2 font-semibold"
+                >
+                    Create Account
+                </button>
+                <p className="text-center text-sm">
+                    Already have an account? <a href="/login" className="text-indigo-400 hover:underline">Login</a>
+                </p>
+            </form>
+        </div>
     );
 }

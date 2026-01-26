@@ -1,34 +1,34 @@
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import ScannerSection from "@/components/ScannerSection";
-import { cookies } from "next/headers";
 
-export default async function ScannerPage() {
-    const cookieStore = cookies();
-    console.log("[SCANNER] Request Cookies:", cookieStore.getAll().map(c => c.name).join(", "));
+export default function ScannerPage() {
+    const router = useRouter();
+    const supabase = createClient();
+    const [userLoaded, setUserLoaded] = useState(false);
 
-    const supabase = await createClient();
+    useEffect(() => {
+        const checkAuth = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                router.replace("/login");
+            } else {
+                setUserLoaded(true);
+            }
+        };
+        checkAuth();
+    }, [supabase, router]);
 
-    console.log("[SCANNER] Checking session...");
-    const {
-        data: { user },
-        error
-    } = await supabase.auth.getUser();
-
-    if (error) {
-        console.error("[SCANNER] Auth Error:", error.message);
+    if (!userLoaded) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-gray-900 text-white">
+                Loading...
+            </div>
+        );
     }
 
-    if (!user) {
-        console.warn("[SCANNER] No user found. Redirecting to login.");
-        return redirect("/login?error=scanner_unauthorized");
-    }
-
-    console.log("[SCANNER] User authenticated:", user.email);
-
-    return (
-        <main className="min-h-screen bg-[var(--bg-default)] text-white pt-20">
-            <ScannerSection />
-        </main>
-    );
+    return <ScannerSection />;
 }

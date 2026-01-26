@@ -1,11 +1,27 @@
 "use client";
-import { Check, X, Download, CheckCircle2, Lightbulb } from "lucide-react";
+import { useState } from "react";
+import { Check, X, Copy, CheckCircle2, Lightbulb } from "lucide-react";
 
 export default function AnalysisReport({ result }: { result: any }) {
+    const [copiedMissing, setCopiedMissing] = useState(false);
+    const [copiedMatched, setCopiedMatched] = useState(false);
+
     const getScoreColor = (score: number) => {
         if (score >= 80) return "text-emerald-400";
         if (score >= 50) return "text-amber-400";
         return "text-red-400";
+    };
+
+    const copyToClipboard = (keywords: string[], type: 'missing' | 'matched') => {
+        if (!keywords || keywords.length === 0) return;
+        navigator.clipboard.writeText(keywords.join(", "));
+        if (type === 'missing') {
+            setCopiedMissing(true);
+            setTimeout(() => setCopiedMissing(false), 2000);
+        } else {
+            setCopiedMatched(true);
+            setTimeout(() => setCopiedMatched(false), 2000);
+        }
     };
 
     return (
@@ -16,12 +32,7 @@ export default function AnalysisReport({ result }: { result: any }) {
                     <h2 className="text-2xl font-bold text-white">Analysis Report</h2>
                     <p className="text-sm text-gray-400">Logic-Based Analysis</p>
                 </div>
-                <button
-                    onClick={() => window.print()}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors no-print"
-                >
-                    <Download size={16} /> Export
-                </button>
+                {/* Download button removed as per request */}
             </div>
 
             {/* Score */}
@@ -34,10 +45,20 @@ export default function AnalysisReport({ result }: { result: any }) {
 
             {/* Keywords Grid */}
             <div className="grid grid-cols-2 gap-6 mb-8">
+                {/* Matched Column */}
                 <div>
-                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <Check size={14} className="text-emerald-400" /> Matched ({result.matched_keywords?.length || 0})
-                    </h3>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                            <Check size={14} className="text-emerald-400" /> Matched ({result.matched_keywords?.length || 0})
+                        </h3>
+                        <button
+                            onClick={() => copyToClipboard(result.matched_keywords, 'matched')}
+                            className="text-gray-500 hover:text-white transition-colors"
+                            title="Copy list"
+                        >
+                            {copiedMatched ? <span className="text-xs text-emerald-400">Copied!</span> : <Copy size={14} />}
+                        </button>
+                    </div>
                     <div className="flex flex-wrap gap-2">
                         {result.matched_keywords?.map((kw: string, i: number) => (
                             <span key={i} className="px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-xs font-medium">
@@ -46,10 +67,21 @@ export default function AnalysisReport({ result }: { result: any }) {
                         ))}
                     </div>
                 </div>
+
+                {/* Missing Column */}
                 <div>
-                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <X size={14} className="text-red-400" /> Missing ({result.missing_keywords?.length || 0})
-                    </h3>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                            <X size={14} className="text-red-400" /> Missing ({result.missing_keywords?.length || 0})
+                        </h3>
+                        <button
+                            onClick={() => copyToClipboard(result.missing_keywords, 'missing')}
+                            className="text-gray-500 hover:text-white transition-colors"
+                            title="Copy list"
+                        >
+                            {copiedMissing ? <span className="text-xs text-emerald-400">Copied!</span> : <Copy size={14} />}
+                        </button>
+                    </div>
                     <div className="flex flex-wrap gap-2">
                         {result.missing_keywords?.map((kw: string, i: number) => (
                             <span key={i} className="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-xs font-medium">
