@@ -48,8 +48,14 @@ export default async function ProfilePage() {
         scansCount = count ?? 0;
 
     } catch (err: any) {
-        // Catch redirection errors (NEXT_REDIRECT)
-        if (err?.message === "NEXT_REDIRECT" || err?.digest?.startsWith("NEXT_REDIRECT")) {
+        // Re-throw Next.js internal errors (NEXT_REDIRECT, DYNAMIC_SERVER_USAGE, etc.)
+        // These are not real errors but signals for the framework
+        const digest = err?.digest || "";
+        if (
+            digest.startsWith("NEXT_REDIRECT") ||
+            digest === "DYNAMIC_SERVER_USAGE" ||
+            err?.message?.includes("Dynamic server usage")
+        ) {
             throw err;
         }
         console.error("CRITICAL SERVER ERROR in ProfilePage:", err);
@@ -57,8 +63,8 @@ export default async function ProfilePage() {
     }
 
     if (!user) {
-        // Should have redirected, but just in case
-        return null;
+        // Should have redirected, but just in case redirect now
+        redirect("/login?next=/profile");
     }
 
     const badge = profile?.plan === "pro" ? { label: "Pro", color: "bg-yellow-400" } : { label: "Free Tier", color: "bg-gray-500" };
