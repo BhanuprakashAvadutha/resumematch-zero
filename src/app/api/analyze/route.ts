@@ -107,6 +107,10 @@ export async function POST(req: Request) {
             if (user) {
                 await supabase.from('scans').insert({
                     user_id: user.id,
+                    resume_filename: file.name,
+                    resume_size_bytes: file.size,
+                    resume_text: resumeText,
+                    job_description: jobDescription,
                     job_description_snippet: jobDescription.slice(0, 100),
                     match_score: score,
                     missing_keywords: analysis.missing_keywords,

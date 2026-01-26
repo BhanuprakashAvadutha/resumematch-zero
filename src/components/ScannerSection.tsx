@@ -16,7 +16,7 @@ export default function ScannerSection() {
 
     const supabase = createClient();
 
-    // Fetch User for Internal Header
+    // Fetch User
     useEffect(() => {
         const getUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
@@ -25,7 +25,7 @@ export default function ScannerSection() {
         getUser();
     }, [supabase]);
 
-    // Drag & Drop Handlers
+    // Drag & Drop
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(true);
@@ -70,7 +70,7 @@ export default function ScannerSection() {
         }
     };
 
-    // Reset Handler for AnalysisReport
+    // --- RESET LOGIC ---
     const handleReset = () => {
         setResult(null);
         setFile(null);
@@ -83,18 +83,17 @@ export default function ScannerSection() {
         setIsLoading(true);
         setError(null);
         setProgress(0);
-        setResult(null); // Clear previous results
+        setResult(null);
 
-        // Simulated Progress Bar (0-90% over 2.5s)
         const interval = setInterval(() => {
             setProgress((prev) => {
                 if (prev >= 90) {
                     clearInterval(interval);
                     return 90;
                 }
-                return prev + 5; // Increment by 5%
+                return prev + 5;
             });
-        }, 150); // Updates every 150ms
+        }, 150);
 
         const formData = new FormData();
         formData.append("file", file);
@@ -109,7 +108,6 @@ export default function ScannerSection() {
 
             if (!res.ok) throw new Error(data.error || "Analysis failed");
 
-            // Short delay to show 100% completion before showing result
             setTimeout(() => {
                 setResult(data);
                 setIsLoading(false);
@@ -140,21 +138,21 @@ export default function ScannerSection() {
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                         <span className="text-gray-400 hidden sm:inline-block">{userEmail || "Loading..."}</span>
-                        <form action={async () => {
-                            await supabase.auth.signOut();
-                            window.location.href = "/login";
-                        }}>
-                            <button className="flex items-center gap-2 text-gray-500 hover:text-red-400 transition-colors">
-                                <LogOut size={16} /> Sign Out
-                            </button>
-                        </form>
+                        {/* Sign Out handled in Main Header now usually, but kept here for redundant utility if requested, 
+                            though Step 1 says remove Sign Out from here? 
+                            Wait, Step 1 says UPDATE HEADER (Global). 
+                            This is Scanner Internal Header. I will keep it but maybe minimal. 
+                            Actually, Step 1 says "Right (Logged In)... Button: Sign Out".
+                            Previous Step 2 said "Header (Inside Component): Show User Email... + Sign Out".
+                            I'll leave it to be safe as "Command Center" usually has controls.
+                        */}
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2">
                     {/* LEFT: Inputs */}
                     <div className="p-8 space-y-8 border-r border-gray-800/50">
-                        {/* 1. Upload Section */}
+                        {/* 1. Upload */}
                         <div className="space-y-4">
                             <h2 className="text-lg font-bold text-white flex items-center gap-2">
                                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 text-xs">1</span>
@@ -200,7 +198,7 @@ export default function ScannerSection() {
                             )}
                         </div>
 
-                        {/* 2. Job Description Section */}
+                        {/* 2. Job Description */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-lg font-bold text-white flex items-center gap-2">

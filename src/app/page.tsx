@@ -43,20 +43,7 @@ export default function Home() {
           Our logic engine scans your resume against job descriptions to reveal exactly what's missing—instantly.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
-          <Link
-            href="/signup"
-            className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
-          >
-            Get Started Free <ArrowRight size={20} />
-          </Link>
-          <Link
-            href="/login"
-            className="w-full sm:w-auto px-8 py-4 bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white rounded-xl font-bold text-lg transition-all"
-          >
-            Sign In
-          </Link>
-        </div>
+
       </section>
 
       {/* Features Grid */}
