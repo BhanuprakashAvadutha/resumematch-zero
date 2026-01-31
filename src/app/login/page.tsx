@@ -21,7 +21,7 @@ export default function LoginPage() {
         if (signInError) {
             setError(signInError.message);
         } else {
-            router.push("/scanner");
+            router.push("/"); // Redirect to home page after login
         }
     };
 

@@ -66,8 +66,8 @@ export default function SignupPage() {
             }
             setIsLoading(false);
         } else {
-            // Successful signup
-            router.push("/login?signup=success");
+            // Successful signup - redirect to home (or login if email confirmation required)
+            router.push("/");
         }
     };
 

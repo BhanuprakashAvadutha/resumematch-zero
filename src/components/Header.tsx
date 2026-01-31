@@ -1,5 +1,5 @@
 ﻿import Link from "next/link";
-import { Zap, LogOut, User, History as HistoryIcon, LayoutDashboard, Menu } from "lucide-react";
+import { Zap, LogOut, User, History as HistoryIcon, LayoutDashboard, Home } from "lucide-react";
 import { getUser } from "@/utils/supabase/server";
 import { logout } from "@/app/auth/actions";
 import MobileMenu from "@/components/MobileMenu";
@@ -24,6 +24,12 @@ export default async function Header() {
             <>
               {/* Desktop Nav */}
               <nav className="hidden md:flex items-center gap-6">
+                <Link
+                  href="/"
+                  className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <Home size={16} /> Home
+                </Link>
                 <Link
                   href="/scanner"
                   className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-2"

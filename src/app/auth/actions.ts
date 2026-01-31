@@ -31,7 +31,7 @@ export async function login(formData: FormData) {
     console.log("[LOGIN] Refresh Token length:", authData.session.refresh_token?.length || 0);
 
     revalidatePath("/", "layout");
-    redirect("/scanner");
+    redirect("/"); // Redirect to home page after login
 }
 
 export async function signup(formData: FormData) {
@@ -50,7 +50,7 @@ export async function signup(formData: FormData) {
     const { error } = await supabase.auth.signUp({
         ...data,
         options: {
-            emailRedirectTo: `${origin}/auth/callback?next=/scanner`,
+            emailRedirectTo: `${origin}/auth/callback?next=/`, // Redirect to home after email confirmation
         },
     });
 
