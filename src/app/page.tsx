@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, ShieldCheck, Zap, LayoutDashboard, History, User } from "lucide-react";
-import { createClient } from "@/utils/supabase/server";
+import { getUser } from "@/utils/supabase/server";
 import FaqSection from "@/components/FaqSection";
 
 export default async function Home() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getUser();
 
   return (
     <main className="min-h-screen bg-[var(--bg-default)] text-white pt-20 flex flex-col">

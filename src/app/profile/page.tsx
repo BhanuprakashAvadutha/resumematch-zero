@@ -1,7 +1,7 @@
 // Server Component (default in Next.js App Router)
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, getUser } from "@/utils/supabase/server";
 import ProfileForm from "@/components/ProfileForm";
 
 export default async function ProfilePage() {
@@ -11,16 +11,16 @@ export default async function ProfilePage() {
 
     // Defensive Data Fetching
     try {
-        const supabase = await createClient();
-
-        // 1. Get User
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        if (userError || !userData?.user) {
+        // 1. Get User (uses cached getUser - deduped with Header)
+        const { user: authUser, error: userError } = await getUser();
+        if (userError || !authUser) {
             console.error("Auth Error or No User:", userError);
             // Redirect unauthenticated users
             redirect("/login?next=/profile");
         }
-        user = userData.user;
+        user = authUser;
+
+        const supabase = await createClient();
 
         // 2. Fetch Profile
         // We use maybeSingle() instead of single() to avoid PGRST116 (0 rows) error turning into an exception if library throws it.

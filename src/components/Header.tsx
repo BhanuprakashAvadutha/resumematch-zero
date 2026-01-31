@@ -1,12 +1,11 @@
 ﻿import Link from "next/link";
 import { Zap, LogOut, User, History as HistoryIcon, LayoutDashboard, Menu } from "lucide-react";
-import { createClient } from "@/utils/supabase/server";
+import { getUser } from "@/utils/supabase/server";
 import { logout } from "@/app/auth/actions";
 import MobileMenu from "@/components/MobileMenu";
 
 export default async function Header() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getUser();
 
   return (
     <header className="fixed top-0 w-full border-b border-white/5 bg-[var(--bg-default)]/80 backdrop-blur-md z-50 no-print">

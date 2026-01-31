@@ -1,18 +1,18 @@
-"use server";
+// Server Component (default in Next.js App Router)
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, getUser } from "@/utils/supabase/server";
 import Link from "next/link";
 import { FileText, Calendar, Trash2, ArrowRight } from "lucide-react";
 
 export default async function HistoryPage() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = await getUser();
 
     if (!user) {
         redirect("/login?next=/history");
     }
 
+    const supabase = await createClient();
     const { data: scans, error } = await supabase
         .from("scans")
         .select("*")
