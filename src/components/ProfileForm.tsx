@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 interface Profile {
@@ -10,16 +11,18 @@ interface Profile {
     linkedin_url: string | null;
     primary_role: string | null;
     experience_level: string | null;
-    plan: string;
-    credits?: number; // Optional, may not be fetched
+    tier: string; // Column name in DB is 'tier', not 'plan'
+    credits?: number;
 }
 
 interface ProfileFormProps {
     initialProfile: Profile | null;
     userId: string;
+    userEmail: string; // User's actual email from auth
 }
 
-export default function ProfileForm({ initialProfile, userId }: ProfileFormProps) {
+export default function ProfileForm({ initialProfile, userId, userEmail }: ProfileFormProps) {
+    const router = useRouter();
     const [isEditing, setIsEditing] = useState(false);
     const [profile, setProfile] = useState<Profile | null>(initialProfile);
     const [loading, setLoading] = useState(false);
@@ -46,9 +49,9 @@ export default function ProfileForm({ initialProfile, userId }: ProfileFormProps
                 experience_level: formData.experience_level,
                 updated_at: new Date().toISOString(),
                 // Required NOT NULL columns for INSERT (upsert may create a new row)
-                email: profile?.email || "user@example.com", // Fallback, should be set on signup
+                email: profile?.email || userEmail || "user@example.com", // Use actual user email from auth
                 credits: profile?.credits ?? 10, // Default credits
-                tier: profile?.plan || "free", // Map 'plan' to 'tier' column
+                tier: profile?.tier || "free", // Use 'tier' column name
             };
 
             // We use upsert to handle both "Create" (if missing) and "Update" (if exists) scenarios robustly.
@@ -66,13 +69,14 @@ export default function ProfileForm({ initialProfile, userId }: ProfileFormProps
                 : {
                     id: userId,
                     email: "User", // We don't have email in formData, but it's fine for display until refresh
-                    plan: "free",
+                    tier: "free",
                     ...formData
                 };
 
             setProfile(newProfileState);
             setIsEditing(false);
             alert("Profile saved successfully!");
+            router.refresh(); // Refresh server data to ensure persistence
         } catch (error) {
             console.error("Error updating profile:", error);
             alert("Failed to save profile.");

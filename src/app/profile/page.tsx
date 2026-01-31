@@ -24,9 +24,10 @@ export default async function ProfilePage() {
 
         // 2. Fetch Profile
         // We use maybeSingle() instead of single() to avoid PGRST116 (0 rows) error turning into an exception if library throws it.
+        // NOTE: Column is 'tier' in DB but we alias it as 'plan' for frontend compatibility
         const { data: profileData, error: profileError } = await supabase
             .from("profiles")
-            .select("id,full_name,email,plan,linkedin_url,primary_role,experience_level")
+            .select("id,full_name,email,tier,credits,linkedin_url,primary_role,experience_level")
             .eq("id", user.id)
             .maybeSingle();
 
@@ -67,7 +68,7 @@ export default async function ProfilePage() {
         redirect("/login?next=/profile");
     }
 
-    const badge = profile?.plan === "pro" ? { label: "Pro", color: "bg-yellow-400" } : { label: "Free Tier", color: "bg-gray-500" };
+    const badge = profile?.tier === "pro" ? { label: "Pro", color: "bg-yellow-400" } : { label: "Free Tier", color: "bg-gray-500" };
 
     return (
         <main className="min-h-screen bg-[var(--bg-default)] text-white py-12 px-4">
@@ -81,7 +82,7 @@ export default async function ProfilePage() {
                 </div>
 
                 {/* Profile Form Component */}
-                <ProfileForm initialProfile={profile} userId={user.id} />
+                <ProfileForm initialProfile={profile} userId={user.id} userEmail={user.email || ""} />
 
                 {/* Card 2 – Usage */}
                 <section className="p-6 bg-gray-900/50 rounded-xl border border-gray-800">
