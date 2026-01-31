@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient, getUser } from "@/utils/supabase/server";
 import Link from "next/link";
-import { FileText, Calendar, Trash2, ArrowRight } from "lucide-react";
+import { FileText, Calendar, Trash2, BarChart3, Target } from "lucide-react";
 
 export default async function HistoryPage() {
     const { user } = await getUser();
@@ -23,6 +23,12 @@ export default async function HistoryPage() {
         console.error("Error fetching scans:", error);
     }
 
+    // Calculate dashboard stats
+    const totalScans = scans?.length || 0;
+    const averageScore = totalScans > 0
+        ? Math.round(scans!.reduce((sum: number, scan: any) => sum + (scan.match_score || 0), 0) / totalScans)
+        : 0;
+
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString("en-US", {
             year: "numeric",
@@ -37,9 +43,16 @@ export default async function HistoryPage() {
         return "text-red-400 bg-red-500/10 border-red-500/20";
     };
 
+    const getAverageScoreColor = (score: number) => {
+        if (score >= 80) return "from-emerald-500 to-emerald-600";
+        if (score >= 50) return "from-amber-500 to-amber-600";
+        return "from-red-500 to-red-600";
+    };
+
     return (
-        <main className="min-h-screen bg-[var(--bg-default)] text-white py-12 px-6">
+        <main className="min-h-screen bg-[var(--bg-default)] text-white pt-24 pb-12 px-6">
             <div className="max-w-4xl mx-auto">
+                {/* Page Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Scan History</h1>
@@ -52,6 +65,40 @@ export default async function HistoryPage() {
                         New Scan
                     </Link>
                 </div>
+
+                {/* Dashboard Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    {/* Total Scans Card */}
+                    <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 border border-blue-500/20 rounded-2xl p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                                <BarChart3 size={28} className="text-blue-400" />
+                            </div>
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">Total Scans</p>
+                                <p className="text-4xl font-bold text-white">{totalScans}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Average ATS Score Card */}
+                    <div className={`bg-gradient-to-br ${totalScans > 0 ? getAverageScoreColor(averageScore).replace('from-', 'from-').replace('to-', 'to-') + '/20' : 'from-gray-600/20 to-gray-800/20'} border ${totalScans > 0 ? 'border-' + (averageScore >= 80 ? 'emerald' : averageScore >= 50 ? 'amber' : 'red') + '-500/20' : 'border-gray-500/20'} rounded-2xl p-6`}>
+                        <div className="flex items-center gap-4">
+                            <div className={`w-14 h-14 ${totalScans > 0 ? (averageScore >= 80 ? 'bg-emerald-500/20' : averageScore >= 50 ? 'bg-amber-500/20' : 'bg-red-500/20') : 'bg-gray-500/20'} rounded-xl flex items-center justify-center`}>
+                                <Target size={28} className={totalScans > 0 ? (averageScore >= 80 ? 'text-emerald-400' : averageScore >= 50 ? 'text-amber-400' : 'text-red-400') : 'text-gray-400'} />
+                            </div>
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">Average ATS Score</p>
+                                <p className="text-4xl font-bold text-white">
+                                    {totalScans > 0 ? `${averageScore}%` : '--'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* History List */}
+                <h2 className="text-xl font-bold mb-4 text-gray-200">Recent Scans</h2>
 
                 {!scans || scans.length === 0 ? (
                     <div className="text-center py-24 bg-gray-900/50 border border-gray-800 rounded-2xl">

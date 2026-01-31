@@ -71,7 +71,7 @@ export default async function ProfilePage() {
     const badge = profile?.tier === "pro" ? { label: "Pro", color: "bg-yellow-400" } : { label: "Free Tier", color: "bg-gray-500" };
 
     return (
-        <main className="min-h-screen bg-[var(--bg-default)] text-white py-12 px-4">
+        <main className="min-h-screen bg-[var(--bg-default)] text-white pt-24 pb-12 px-4">
             <div className="max-w-4xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">

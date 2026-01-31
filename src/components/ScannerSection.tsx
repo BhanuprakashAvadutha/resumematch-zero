@@ -121,7 +121,7 @@ export default function ScannerSection() {
     };
 
     return (
-        <section className="max-w-7xl mx-auto px-6 py-12">
+        <section className="max-w-7xl mx-auto px-6 pt-24 pb-12">
             <div className="text-center mb-10">
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-white mb-4">
                     Resume Command Center

@@ -7,7 +7,7 @@ export default async function Home() {
   const { user } = await getUser();
 
   return (
-    <main className="min-h-screen bg-[var(--bg-default)] text-white pt-20 flex flex-col">
+    <main className="min-h-screen bg-[var(--bg-default)] text-white pt-24 flex flex-col">
       {user ? (
         // --- LOGGED IN DASHBOARD ---
         <div className="max-w-5xl mx-auto w-full px-6 py-8 md:py-12 flex-1 flex flex-col">
