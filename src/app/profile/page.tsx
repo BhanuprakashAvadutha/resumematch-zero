@@ -1,4 +1,4 @@
-"use server";
+// Server Component (default in Next.js App Router)
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
