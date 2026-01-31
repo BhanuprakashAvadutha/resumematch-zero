@@ -11,6 +11,7 @@ interface Profile {
     primary_role: string | null;
     experience_level: string | null;
     plan: string;
+    credits?: number; // Optional, may not be fetched
 }
 
 interface ProfileFormProps {
@@ -44,6 +45,10 @@ export default function ProfileForm({ initialProfile, userId }: ProfileFormProps
                 primary_role: formData.primary_role,
                 experience_level: formData.experience_level,
                 updated_at: new Date().toISOString(),
+                // Required NOT NULL columns for INSERT (upsert may create a new row)
+                email: profile?.email || "user@example.com", // Fallback, should be set on signup
+                credits: profile?.credits ?? 10, // Default credits
+                tier: profile?.plan || "free", // Map 'plan' to 'tier' column
             };
 
             // We use upsert to handle both "Create" (if missing) and "Update" (if exists) scenarios robustly.
