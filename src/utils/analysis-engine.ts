@@ -65,13 +65,22 @@ export const SYNONYM_MAP: Record<string, string[]> = {
 };
 
 // 3. Stop Words (Enhanced)
+// 3. Stop Words (Enhanced)
 export const STOP_WORDS = new Set([
-    "the", "and", "a", "an", "to", "of", "in", "for", "with", "on", "at", "from", "by", "about", "as", "into", "like", "through", "after", "over", "between", "out", "against", "during", "without", "before", "under", "around", "among",
-    "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "can", "could", "should", "would", "will", "may", "might", "must",
-    "looking", "seeking", "hiring", "wanted", "job", "role", "position", "career", "opportunity", "team", "company", "organization", "client", "candidate", "applicant", "work", "working", "experience", "year", "years", "month", "months",
-    "responsible", "accountable", "duties", "qualifications", "requirements", "skills", "ability", "knowledge", "understanding", "familiarity", "proven", "track", "record", "excellent", "strong", "good", "great", "proficient", "preferred", "plus", "advantage",
-    "help", "support", "assist", "lead", "manage", "coordinate", "collaborate", "communicate", "participate", "contribute", "join", "create", "build", "develop", "maintain", "ensure", "provide", "perform", "conduct", "review",
-    "please", "apply", "contact", "email", "resume", "cv", "cover", "letter",
+    // 1. USER-REPORTED GARBAGE (High Priority Removal)
+    "science", "internship", "summer", "2024", "2025", "2026", "2027", "duration", "location", "remote", "hybrid", "onsite", "overview", "we", "our", "us", "you", "your", "developing", "develop", "development", "program", "opportunity", "apply", "application", "deadline",
+
+    // 2. Logistics & Time
+    "month", "months", "year", "years", "week", "weeks", "day", "days", "hour", "hours", "fulltime", "full-time", "parttime", "part-time", "contract", "temporary", "permanent", "shift", "schedule", "monday", "friday", "start", "end", "date", "salary", "benefits", "compensation", "per", "annum", "hour",
+
+    // 3. Corporate Fluff & Sections
+    "responsibilities", "requirements", "qualifications", "preferred", "desired", "plus", "bonus", "about", "company", "team", "culture", "mission", "vision", "values", "description", "summary", "role", "position", "candidate", "ideal", "person", "individual", "seeking", "looking", "join", "help", "support", "reporting", "reports", "closely", "work", "environment", "fast-paced", "dynamic",
+
+    // 4. Generic Verbs (Actions are NOT Skills)
+    "manage", "managing", "create", "creating", "build", "building", "maintain", "maintaining", "lead", "leading", "coordinate", "coordinating", "collaborate", "collaborating", "assist", "assisting", "ensure", "ensuring", "provide", "providing", "perform", "performing", "participate", "participating", "follow", "following", "execute", "executing", "deliver", "delivering", "demonstrate", "demonstrating", "identify", "identifying", "analyze", "analyzing", "collect", "collecting", "prepare", "preparing", "clean", "cleaning", "understand", "understanding", "improve", "improving", "existing", "new",
+
+    // 5. Standard Grammar
+    "the", "and", "or", "a", "an", "to", "of", "in", "for", "with", "on", "at", "from", "by", "as", "is", "are", "was", "were", "be", "been", "has", "have", "had", "it", "that", "this", "these", "those", "which", "what", "where", "when", "why", "how", "can", "could", "will", "would", "should", "must"
 ]);
 
 // 4. Phrase Keywords (to detect before splitting)
