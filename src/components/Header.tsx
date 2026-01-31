@@ -5,7 +5,15 @@ import { logout } from "@/app/auth/actions";
 import MobileMenu from "@/components/MobileMenu";
 
 export default async function Header() {
-  const { user } = await getUser();
+  let user = null;
+
+  try {
+    const result = await getUser();
+    user = result.user;
+  } catch (error) {
+    console.error("Header: Error fetching user:", error);
+    // Continue with user = null to show guest header
+  }
 
   return (
     <header className="fixed top-0 w-full border-b border-white/5 bg-[var(--bg-default)]/80 backdrop-blur-md z-50 no-print">
@@ -22,7 +30,7 @@ export default async function Header() {
         <div className="flex items-center gap-6">
           {user ? (
             <>
-              {/* Desktop Nav */}
+              {/* Desktop Nav - Logged In */}
               <nav className="hidden md:flex items-center gap-6">
                 <Link
                   href="/"

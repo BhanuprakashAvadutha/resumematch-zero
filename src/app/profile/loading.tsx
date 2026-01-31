@@ -1,37 +1,25 @@
 export default function ProfileLoading() {
     return (
-        <main className="min-h-screen bg-[var(--bg-default)] text-white pt-20 pb-12 px-6">
-            <div className="max-w-4xl mx-auto animate-pulse">
-                {/* Header Skeleton */}
-                <div className="mb-8">
-                    <div className="h-10 w-48 bg-gray-800 rounded-lg mb-2"></div>
-                    <div className="h-5 w-64 bg-gray-800/60 rounded"></div>
+        <main className="min-h-screen bg-[var(--bg-default)] text-white pt-24 flex flex-col items-center justify-center">
+            {/* Centered Loading Spinner */}
+            <div className="flex flex-col items-center gap-6">
+                {/* Animated Spinner */}
+                <div className="relative">
+                    <div className="w-16 h-16 border-4 border-purple-500/20 rounded-full"></div>
+                    <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-purple-500 rounded-full animate-spin"></div>
                 </div>
 
-                {/* Personal Info Card Skeleton */}
-                <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 mb-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="h-8 w-48 bg-gray-800 rounded"></div>
-                        <div className="h-10 w-28 bg-indigo-600/30 rounded-lg"></div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="space-y-2">
-                                <div className="h-4 w-24 bg-gray-700 rounded"></div>
-                                <div className="h-8 w-full bg-gray-800 rounded"></div>
-                            </div>
-                        ))}
-                    </div>
+                {/* Loading Text */}
+                <div className="text-center">
+                    <h2 className="text-xl font-semibold text-white mb-2">Loading Profile</h2>
+                    <p className="text-gray-400 text-sm">Fetching your account details...</p>
                 </div>
 
-                {/* Usage Stats Skeleton */}
-                <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                    <div className="h-8 w-36 bg-gray-800 rounded mb-6"></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="h-24 bg-gray-800/50 rounded-xl"></div>
-                        <div className="h-24 bg-gray-800/50 rounded-xl"></div>
-                    </div>
+                {/* Pulsing dots */}
+                <div className="flex gap-2">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
                 </div>
             </div>
         </main>
