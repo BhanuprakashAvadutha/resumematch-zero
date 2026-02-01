@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
-import { Upload, FileText, Loader2, CheckCircle, AlertCircle, X } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle, AlertCircle, X, Copy, Check } from "lucide-react";
 import { Resume } from "@/types/resume";
 
 interface ImportResumeProps {
@@ -8,12 +8,17 @@ interface ImportResumeProps {
     onClose: () => void;
 }
 
+interface ParsedData extends Partial<Resume> {
+    text?: string;
+}
+
 export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [status, setStatus] = useState<'idle' | 'parsing' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState("");
-    const [parsedData, setParsedData] = useState<Partial<Resume> | null>(null);
+    const [parsedData, setParsedData] = useState<ParsedData | null>(null);
+    const [copied, setCopied] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -51,7 +56,6 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
         setErrorMessage("");
 
         try {
-            // Create FormData and send to API for parsing
             const formData = new FormData();
             formData.append("file", uploadedFile);
 
@@ -75,9 +79,31 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
         }
     };
 
+    const handleCopyText = () => {
+        if (parsedData?.text) {
+            navigator.clipboard.writeText(parsedData.text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
     const handleConfirmImport = () => {
         if (parsedData) {
-            onImport(parsedData);
+            // Only import fields that have data
+            const importData: Partial<Resume> = {};
+            if (parsedData.full_name) importData.full_name = parsedData.full_name;
+            if (parsedData.email) importData.email = parsedData.email;
+            if (parsedData.phone) importData.phone = parsedData.phone;
+            if (parsedData.location) importData.location = parsedData.location;
+            if (parsedData.summary) importData.summary = parsedData.summary;
+            if (parsedData.links && parsedData.links.length > 0) importData.links = parsedData.links;
+            if (parsedData.skills && parsedData.skills.length > 0) importData.skills = parsedData.skills;
+            if (parsedData.experiences && parsedData.experiences.length > 0) importData.experiences = parsedData.experiences;
+            if (parsedData.education && parsedData.education.length > 0) importData.education = parsedData.education;
+            if (parsedData.projects && parsedData.projects.length > 0) importData.projects = parsedData.projects;
+            if (parsedData.certifications && parsedData.certifications.length > 0) importData.certifications = parsedData.certifications;
+
+            onImport(importData);
             onClose();
         }
     };
@@ -103,7 +129,6 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
                 <div className="p-6">
                     {status === 'idle' && (
                         <>
-                            {/* Drop Zone */}
                             <div
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
@@ -137,8 +162,7 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
                             />
 
                             <p className="text-gray-500 text-xs mt-4 text-center">
-                                We'll extract your information and auto-fill the form.
-                                You can edit any field manually after import.
+                                We'll extract basic contact info. You can fill in remaining details manually.
                             </p>
                         </>
                     )}
@@ -146,7 +170,7 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
                     {status === 'parsing' && (
                         <div className="text-center py-8">
                             <Loader2 className="w-12 h-12 text-blue-400 animate-spin mx-auto mb-4" />
-                            <p className="text-white font-medium mb-2">Parsing your resume...</p>
+                            <p className="text-white font-medium mb-2">Extracting text...</p>
                             <p className="text-gray-400 text-sm">{file?.name}</p>
                         </div>
                     )}
@@ -172,14 +196,14 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
                             <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
                                 <CheckCircle className="w-6 h-6 text-green-400 shrink-0" />
                                 <div>
-                                    <p className="text-white font-medium">Resume parsed successfully!</p>
-                                    <p className="text-green-400 text-sm">Ready to import</p>
+                                    <p className="text-white font-medium">Resume processed!</p>
+                                    <p className="text-green-400 text-sm">Basic info extracted</p>
                                 </div>
                             </div>
 
-                            {/* Preview of parsed data */}
-                            <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 space-y-3 max-h-64 overflow-y-auto">
-                                <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wide">Extracted Data</h3>
+                            {/* Extracted Data Preview */}
+                            <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 space-y-3">
+                                <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wide">Extracted Info</h3>
 
                                 {parsedData.full_name && (
                                     <div>
@@ -193,28 +217,41 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
                                         <p className="text-white">{parsedData.email}</p>
                                     </div>
                                 )}
-                                {parsedData.experiences && parsedData.experiences.length > 0 && (
+                                {parsedData.phone && (
                                     <div>
-                                        <span className="text-gray-500 text-xs">Experience:</span>
-                                        <p className="text-white">{parsedData.experiences.length} positions found</p>
+                                        <span className="text-gray-500 text-xs">Phone:</span>
+                                        <p className="text-white">{parsedData.phone}</p>
                                     </div>
                                 )}
-                                {parsedData.education && parsedData.education.length > 0 && (
+                                {parsedData.links && parsedData.links.length > 0 && (
                                     <div>
-                                        <span className="text-gray-500 text-xs">Education:</span>
-                                        <p className="text-white">{parsedData.education.length} entries found</p>
-                                    </div>
-                                )}
-                                {parsedData.skills && parsedData.skills.length > 0 && (
-                                    <div>
-                                        <span className="text-gray-500 text-xs">Skills:</span>
-                                        <p className="text-white">{parsedData.skills.reduce((acc, s) => acc + s.items.length, 0)} skills found</p>
+                                        <span className="text-gray-500 text-xs">Links:</span>
+                                        <p className="text-white">{parsedData.links.map(l => l.label).join(", ")}</p>
                                     </div>
                                 )}
                             </div>
 
-                            <p className="text-gray-500 text-xs text-center">
-                                Missing data? You can fill in any empty fields manually after import.
+                            {/* Raw Text Preview */}
+                            {parsedData.text && (
+                                <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h3 className="text-sm font-medium text-gray-400">Resume Text (for manual copy)</h3>
+                                        <button
+                                            onClick={handleCopyText}
+                                            className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
+                                        >
+                                            {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                            {copied ? "Copied!" : "Copy All"}
+                                        </button>
+                                    </div>
+                                    <pre className="text-xs text-gray-400 max-h-32 overflow-y-auto whitespace-pre-wrap font-mono bg-gray-900/50 p-2 rounded">
+                                        {parsedData.text}
+                                    </pre>
+                                </div>
+                            )}
+
+                            <p className="text-yellow-400/80 text-xs text-center bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2">
+                                💡 Only basic contact info is auto-extracted. Please fill in experience, education, and skills manually from the text above.
                             </p>
 
                             <div className="flex gap-3">
@@ -228,7 +265,7 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
                                     onClick={handleConfirmImport}
                                     className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-colors"
                                 >
-                                    Import Resume
+                                    Import Basic Info
                                 </button>
                             </div>
                         </div>

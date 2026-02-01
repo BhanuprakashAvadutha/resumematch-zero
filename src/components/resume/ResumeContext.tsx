@@ -142,13 +142,13 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    // Auto-save every 30 seconds if dirty
+    // Auto-save every 5 seconds if dirty (reduced from 30s to prevent data loss)
     useEffect(() => {
         if (!isDirty || !resume) return;
 
         const timer = setTimeout(() => {
             saveResume(resume);
-        }, 30000);
+        }, 5000);
 
         return () => clearTimeout(timer);
     }, [isDirty, resume]);
