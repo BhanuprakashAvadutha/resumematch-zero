@@ -19,9 +19,9 @@ export async function middleware(request: NextRequest) {
                 getAll() {
                     return request.cookies.getAll();
                 },
-                setAll(cookiesToSet) {
+                setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
                     // First set cookies on the request (for downstream handlers)
-                    cookiesToSet.forEach(({ name, value }) => {
+                    cookiesToSet.forEach(({ name, value }: { name: string; value: string }) => {
                         request.cookies.set(name, value);
                     });
 
@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
                     });
 
                     // Then set cookies on the response (for the browser)
-                    cookiesToSet.forEach(({ name, value, options }) => {
+                    cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options?: Record<string, unknown> }) => {
                         response.cookies.set(name, value, options);
                     });
                 },

@@ -2,6 +2,7 @@
 import { useResume } from "../ResumeContext";
 import { Project, createEmptyProject } from "@/types/resume";
 import { Plus, Trash2, GripVertical } from "lucide-react";
+import MonthPicker from "../MonthPicker";
 
 function generateId(): string {
     return crypto.randomUUID?.() || Math.random().toString(36).substring(2, 15);
@@ -57,12 +58,10 @@ function ProjectCard({ project, onUpdate, onDelete }: ProjectCardProps) {
                             placeholder="Project Name"
                             className="md:col-span-2 bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-white font-medium placeholder:text-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         />
-                        <input
-                            type="text"
+                        <MonthPicker
                             value={project.date_range || ""}
-                            onChange={(e) => onUpdate({ ...project, date_range: e.target.value })}
+                            onChange={(value) => onUpdate({ ...project, date_range: value })}
                             placeholder="Date (optional)"
-                            className="bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         />
                     </div>
 

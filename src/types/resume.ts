@@ -42,7 +42,9 @@ export interface Education {
     degree: string;
     institution: string;
     location?: string;
-    date_range: string;   // e.g., "2019 - 2023"
+    start_date?: string;  // e.g., "2024-01" for MonthPicker
+    end_date?: string;    // e.g., "2024-12" or "Present"
+    date_range: string;   // e.g., "2019 - 2023" (backwards compat)
     gpa?: string;
     notes?: string;       // Honors, distinctions
     sort_order: number;
@@ -238,6 +240,8 @@ export const createEmptyEducation = (): Omit<Education, 'id'> => ({
     degree: '',
     institution: '',
     location: '',
+    start_date: '',
+    end_date: '',
     date_range: '',
     gpa: '',
     notes: '',

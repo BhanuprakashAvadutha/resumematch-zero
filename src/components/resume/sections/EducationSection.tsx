@@ -2,6 +2,7 @@
 import { useResume } from "../ResumeContext";
 import { Education, createEmptyEducation } from "@/types/resume";
 import { Plus, Trash2, GripVertical } from "lucide-react";
+import MonthPicker from "../MonthPicker";
 
 function generateId(): string {
     return crypto.randomUUID?.() || Math.random().toString(36).substring(2, 15);
@@ -14,6 +15,29 @@ interface EducationCardProps {
 }
 
 function EducationCard({ education, onUpdate, onDelete }: EducationCardProps) {
+    // Parse start_date and end_date from date_range if it exists in old format
+    const parseExistingDateRange = () => {
+        if (education.start_date || education.end_date) {
+            return { startDate: education.start_date || "", endDate: education.end_date || "" };
+        }
+        // Try to parse from date_range for backwards compatibility
+        if (education.date_range) {
+            const parts = education.date_range.split(/\s*[-–]\s*/);
+            return { startDate: parts[0] || "", endDate: parts[1] || "" };
+        }
+        return { startDate: "", endDate: "" };
+    };
+
+    const { startDate, endDate } = parseExistingDateRange();
+
+    const handleStartDateChange = (value: string) => {
+        onUpdate({ ...education, start_date: value, date_range: `${value} - ${endDate}` });
+    };
+
+    const handleEndDateChange = (value: string) => {
+        onUpdate({ ...education, end_date: value, date_range: `${startDate} - ${value}` });
+    };
+
     return (
         <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-5 space-y-4">
             <div className="flex items-start gap-3">
@@ -41,7 +65,7 @@ function EducationCard({ education, onUpdate, onDelete }: EducationCardProps) {
                     </div>
 
                     {/* Location, Date, GPA Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                         <input
                             type="text"
                             value={education.location || ""}
@@ -49,12 +73,16 @@ function EducationCard({ education, onUpdate, onDelete }: EducationCardProps) {
                             placeholder="Location"
                             className="bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         />
-                        <input
-                            type="text"
-                            value={education.date_range}
-                            onChange={(e) => onUpdate({ ...education, date_range: e.target.value })}
-                            placeholder="Date Range (e.g., 2019 - 2023)"
-                            className="bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        <MonthPicker
+                            value={startDate}
+                            onChange={handleStartDateChange}
+                            placeholder="Start Date"
+                        />
+                        <MonthPicker
+                            value={endDate}
+                            onChange={handleEndDateChange}
+                            placeholder="End Date"
+                            allowPresent={true}
                         />
                         <input
                             type="text"

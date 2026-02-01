@@ -2,6 +2,7 @@
 import { useResume } from "../ResumeContext";
 import { Experience, createEmptyExperience } from "@/types/resume";
 import { Plus, Trash2, GripVertical } from "lucide-react";
+import MonthPicker from "../MonthPicker";
 
 function generateId(): string {
     return crypto.randomUUID?.() || Math.random().toString(36).substring(2, 15);
@@ -76,19 +77,16 @@ function ExperienceCard({ experience, onUpdate, onDelete, index }: ExperienceCar
                             placeholder="Location"
                             className="bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         />
-                        <input
-                            type="text"
+                        <MonthPicker
                             value={experience.start_date}
-                            onChange={(e) => onUpdate({ ...experience, start_date: e.target.value })}
-                            placeholder="Start Date (e.g., Jan 2022)"
-                            className="bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            onChange={(value) => onUpdate({ ...experience, start_date: value })}
+                            placeholder="Start Date"
                         />
-                        <input
-                            type="text"
+                        <MonthPicker
                             value={experience.end_date}
-                            onChange={(e) => onUpdate({ ...experience, end_date: e.target.value })}
-                            placeholder="End Date (or Present)"
-                            className="bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            onChange={(value) => onUpdate({ ...experience, end_date: value })}
+                            placeholder="End Date"
+                            allowPresent={true}
                         />
                     </div>
 
