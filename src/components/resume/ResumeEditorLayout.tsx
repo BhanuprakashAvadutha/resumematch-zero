@@ -398,6 +398,15 @@ export default function ResumeEditorLayout() {
 
                         {/* Right: Actions */}
                         <div className="flex items-center gap-2">
+                            {/* Import Resume - Prominent Button */}
+                            <button
+                                onClick={() => setShowImportModal(true)}
+                                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-all shadow-lg shadow-purple-500/20"
+                            >
+                                <Upload className="w-4 h-4" />
+                                <span className="hidden sm:inline">Import Resume</span>
+                            </button>
+
                             <button
                                 onClick={() => setShowPreview(!showPreview)}
                                 className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-300 hover:text-white transition-colors"
@@ -450,13 +459,8 @@ export default function ResumeEditorLayout() {
 
                     {/* Right: Preview & Intelligence */}
                     {showPreview && (
-                        <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
-                            {/* Intelligence Panels */}
-                            <ScorePanel />
-                            <AvoidedWordsPanel />
-                            <JDMatcherPanel />
-
-                            {/* Preview */}
+                        <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+                            {/* Preview First - More Prominent */}
                             <div className="border border-gray-800 rounded-xl overflow-hidden">
                                 <div className="bg-gray-800/50 px-4 py-2 border-b border-gray-700 flex items-center justify-between">
                                     <span className="text-sm text-gray-400">Live Preview</span>
@@ -469,12 +473,44 @@ export default function ResumeEditorLayout() {
                                 </div>
                                 <div
                                     ref={previewRef}
-                                    className="max-h-[600px] overflow-y-auto bg-gray-100 p-4"
-                                    style={{ transform: 'scale(0.6)', transformOrigin: 'top center', marginBottom: '-40%' }}
+                                    className="max-h-[400px] overflow-y-auto bg-gray-100 p-3"
+                                    style={{ transform: 'scale(0.55)', transformOrigin: 'top center', marginBottom: '-45%' }}
                                 >
                                     <ResumePreview />
                                 </div>
                             </div>
+
+                            {/* Compact Score Panel */}
+                            <details className="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
+                                <summary className="px-4 py-3 cursor-pointer text-sm font-medium text-gray-300 hover:bg-gray-800/50 flex items-center justify-between">
+                                    <span>📊 Resume Score & Tips</span>
+                                    <ChevronDown className="w-4 h-4" />
+                                </summary>
+                                <div className="border-t border-gray-800">
+                                    <ScorePanel />
+                                </div>
+                            </details>
+
+                            {/* Compact Other Panels */}
+                            <details className="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
+                                <summary className="px-4 py-3 cursor-pointer text-sm font-medium text-gray-300 hover:bg-gray-800/50 flex items-center justify-between">
+                                    <span>⚠️ Words to Avoid</span>
+                                    <ChevronDown className="w-4 h-4" />
+                                </summary>
+                                <div className="border-t border-gray-800">
+                                    <AvoidedWordsPanel />
+                                </div>
+                            </details>
+
+                            <details className="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
+                                <summary className="px-4 py-3 cursor-pointer text-sm font-medium text-gray-300 hover:bg-gray-800/50 flex items-center justify-between">
+                                    <span>🎯 JD Matcher</span>
+                                    <ChevronDown className="w-4 h-4" />
+                                </summary>
+                                <div className="border-t border-gray-800">
+                                    <JDMatcherPanel />
+                                </div>
+                            </details>
                         </div>
                     )}
                 </div>

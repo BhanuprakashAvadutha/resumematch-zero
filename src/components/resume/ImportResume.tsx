@@ -89,7 +89,6 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
 
     const handleConfirmImport = () => {
         if (parsedData) {
-            // Only import fields that have data
             const importData: Partial<Resume> = {};
             if (parsedData.full_name) importData.full_name = parsedData.full_name;
             if (parsedData.email) importData.email = parsedData.email;
@@ -110,9 +109,9 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg overflow-hidden">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+                {/* Header - Fixed */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
                     <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                         <Upload className="w-5 h-5 text-blue-400" />
                         Import Resume
@@ -125,8 +124,8 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
                     </button>
                 </div>
 
-                {/* Content */}
-                <div className="p-6">
+                {/* Content - Scrollable */}
+                <div className="flex-1 overflow-y-auto p-6">
                     {status === 'idle' && (
                         <>
                             <div
@@ -244,33 +243,38 @@ export default function ImportResume({ onImport, onClose }: ImportResumeProps) {
                                             {copied ? "Copied!" : "Copy All"}
                                         </button>
                                     </div>
-                                    <pre className="text-xs text-gray-400 max-h-32 overflow-y-auto whitespace-pre-wrap font-mono bg-gray-900/50 p-2 rounded">
+                                    <pre className="text-xs text-gray-400 max-h-24 overflow-y-auto whitespace-pre-wrap font-mono bg-gray-900/50 p-2 rounded">
                                         {parsedData.text}
                                     </pre>
                                 </div>
                             )}
 
                             <p className="text-yellow-400/80 text-xs text-center bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2">
-                                💡 Only basic contact info is auto-extracted. Please fill in experience, education, and skills manually from the text above.
+                                💡 Only basic contact info is auto-extracted. Fill in experience, education, and skills manually from the text above.
                             </p>
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => { setStatus('idle'); setFile(null); setParsedData(null); }}
-                                    className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium transition-colors"
-                                >
-                                    Upload Different File
-                                </button>
-                                <button
-                                    onClick={handleConfirmImport}
-                                    className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-colors"
-                                >
-                                    Import Basic Info
-                                </button>
-                            </div>
                         </div>
                     )}
                 </div>
+
+                {/* Footer - Fixed Action Buttons */}
+                {status === 'success' && parsedData && (
+                    <div className="shrink-0 border-t border-gray-800 p-4 bg-gray-900/50">
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => { setStatus('idle'); setFile(null); setParsedData(null); }}
+                                className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium transition-colors"
+                            >
+                                Upload Different
+                            </button>
+                            <button
+                                onClick={handleConfirmImport}
+                                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-colors"
+                            >
+                                Import Now
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
