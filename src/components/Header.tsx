@@ -1,5 +1,5 @@
 ﻿import Link from "next/link";
-import { Zap, LogOut, User, History as HistoryIcon, LayoutDashboard, Home } from "lucide-react";
+import { Zap, LogOut, User, History as HistoryIcon, LayoutDashboard, Home, FileEdit } from "lucide-react";
 import { getUser } from "@/utils/supabase/server";
 import { logout } from "@/app/auth/actions";
 import MobileMenu from "@/components/MobileMenu";
@@ -43,6 +43,12 @@ export default async function Header() {
                   className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-2"
                 >
                   <LayoutDashboard size={16} /> Scanner
+                </Link>
+                <Link
+                  href="/resume/builder"
+                  className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <FileEdit size={16} /> Resume Builder
                 </Link>
                 <Link
                   href="/history"

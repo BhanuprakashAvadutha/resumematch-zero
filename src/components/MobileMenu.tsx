@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { LayoutDashboard, History, User, LogOut, Menu, X, Home } from "lucide-react";
+import { LayoutDashboard, History, User, LogOut, Menu, X, Home, FileEdit } from "lucide-react";
 import { logout } from "@/app/auth/actions";
 
 export default function MobileMenu({ user }: { user: any }) {
@@ -55,6 +55,16 @@ export default function MobileMenu({ user }: { user: any }) {
                             <LayoutDashboard size={18} />
                         </div>
                         Scanner
+                    </Link>
+                    <Link
+                        href="/resume/builder"
+                        className="flex items-center gap-3 text-lg font-medium text-gray-300 hover:text-white transition-colors"
+                        onClick={() => setIsOpen(false)}
+                    >
+                        <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400">
+                            <FileEdit size={18} />
+                        </div>
+                        Resume Builder
                     </Link>
                     <Link
                         href="/history"
