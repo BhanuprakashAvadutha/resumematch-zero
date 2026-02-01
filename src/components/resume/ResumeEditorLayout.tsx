@@ -74,6 +74,20 @@ export default function ResumeEditorLayout() {
                 return;
             }
 
+            // Extract all links BEFORE creating the temporary container
+            const links = Array.from(previewContent.querySelectorAll('a'));
+            const linkData = links.map(link => {
+                const rect = link.getBoundingClientRect();
+                const containerRect = previewContent.getBoundingClientRect();
+                return {
+                    url: link.href,
+                    x: rect.left - containerRect.left,
+                    y: rect.top - containerRect.top,
+                    width: rect.width,
+                    height: rect.height
+                };
+            });
+
             // Create a temporary container for PDF generation
             const pdfContainer = document.createElement('div');
             pdfContainer.style.position = 'absolute';
@@ -93,6 +107,9 @@ export default function ResumeEditorLayout() {
 
             pdfContainer.appendChild(clonedContent);
             document.body.appendChild(pdfContainer);
+
+            // Get container dimensions for scaling
+            const containerRect = pdfContainer.getBoundingClientRect();
 
             // Generate high-quality canvas
             const canvas = await html2canvas(pdfContainer, {
@@ -130,6 +147,34 @@ export default function ResumeEditorLayout() {
                 pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
                 heightLeft -= pageHeight;
             }
+
+            // Add clickable links to PDF
+            linkData.forEach(link => {
+                // Convert pixel coordinates to PDF coordinates (mm)
+                // Account for the padding (0.5in = 12.7mm top, 0.6in = 15.24mm left)
+                const pdfX = (link.x / containerRect.width) * imgWidth;
+                const pdfY = (link.y / containerRect.height) * imgHeight;
+                const pdfWidth = (link.width / containerRect.width) * imgWidth;
+                const pdfHeight = (link.height / containerRect.height) * imgHeight;
+
+                // Determine which page this link is on
+                let currentPage = 1;
+                let adjustedY = pdfY;
+
+                while (adjustedY > pageHeight && currentPage < pdf.getNumberOfPages()) {
+                    adjustedY -= pageHeight;
+                    currentPage++;
+                }
+
+                // Only add link if it's visible on a page
+                if (adjustedY >= 0 && adjustedY < pageHeight) {
+                    // Set the active page
+                    pdf.setPage(currentPage);
+
+                    // Add the clickable link area
+                    pdf.link(pdfX, adjustedY, pdfWidth, pdfHeight, { url: link.url });
+                }
+            });
 
             // Generate filename based on user's name
             const fileName = resume.full_name
@@ -269,10 +314,10 @@ export default function ResumeEditorLayout() {
                                 onClick={handleDownloadPDF}
                                 disabled={downloadStatus === 'generating'}
                                 className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm transition-colors ${downloadStatus === 'generating'
-                                        ? 'bg-purple-400 cursor-wait'
-                                        : downloadStatus === 'done'
-                                            ? 'bg-green-500 hover:bg-green-600'
-                                            : 'bg-purple-500 hover:bg-purple-600'
+                                    ? 'bg-purple-400 cursor-wait'
+                                    : downloadStatus === 'done'
+                                        ? 'bg-green-500 hover:bg-green-600'
+                                        : 'bg-purple-500 hover:bg-purple-600'
                                     } text-white`}
                             >
                                 {downloadStatus === 'generating' ? (
