@@ -1,5 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import { useResume } from "./ResumeContext";
 import HeaderSection from "./sections/HeaderSection";
 import SummarySection from "./sections/SummarySection";
@@ -33,6 +35,7 @@ export default function ResumeEditorLayout() {
     const [showSavedList, setShowSavedList] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
     const [showImportModal, setShowImportModal] = useState(false);
+    const [downloadStatus, setDownloadStatus] = useState<'idle' | 'generating' | 'done'>('idle');
     const previewRef = useRef<HTMLDivElement>(null);
 
     const handleImport = (data: Partial<Resume>) => {
@@ -61,257 +64,88 @@ export default function ResumeEditorLayout() {
         }, 500);
     };
 
-    const handlePrint = () => {
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) return;
+    const handleDownloadPDF = async () => {
+        setDownloadStatus('generating');
 
-        const previewContent = document.getElementById('resume-preview');
-        if (!previewContent) return;
-
-        // Clone the content to avoid modifying the original
-        const clonedContent = previewContent.cloneNode(true) as HTMLElement;
-
-        // Remove any inline styles that might interfere
-        clonedContent.style.cssText = '';
-        clonedContent.className = 'resume-content';
-
-        printWindow.document.write(`
-<!DOCTYPE html>
-<html>
-<head>
-    <title>${resume.full_name || 'Resume'} - Resume</title>
-    <meta charset="UTF-8">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap');
-        
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-        }
-        
-        @page { 
-            size: letter; 
-            margin: 0.5in 0.6in; 
-        }
-        
-        body { 
-            font-family: 'Georgia', 'Times New Roman', serif; 
-            font-size: 11pt;
-            line-height: 1.35;
-            color: #1a1a1a;
-            background: white;
-        }
-        
-        .resume-content {
-            max-width: 100%;
-            padding: 0;
-            background: white;
-        }
-        
-        /* Header Styles */
-        header {
-            text-align: center;
-            border-bottom: 2px solid #1a1a1a;
-            padding-bottom: 10px;
-            margin-bottom: 12px;
-        }
-        
-        header h1 {
-            font-size: 22pt;
-            font-weight: bold;
-            color: #1a1a1a;
-            margin-bottom: 6px;
-            letter-spacing: -0.5px;
-        }
-        
-        header a {
-            color: #1a1a1a;
-            text-decoration: none;
-        }
-        
-        header a:hover {
-            text-decoration: underline;
-        }
-        
-        header .links a {
-            color: #0066cc;
-        }
-        
-        /* Section Headers */
-        h2 {
-            font-size: 11pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #1a1a1a;
-            border-bottom: 1px solid #666;
-            padding-bottom: 2px;
-            margin-bottom: 8px;
-        }
-        
-        section {
-            margin-bottom: 12px;
-        }
-        
-        /* Entry Headers */
-        h3 {
-            font-size: 11pt;
-            font-weight: bold;
-            color: #1a1a1a;
-        }
-        
-        /* Lists */
-        ul {
-            margin-left: 18px;
-            margin-top: 4px;
-        }
-        
-        li {
-            margin-bottom: 3px;
-            padding-left: 4px;
-            text-align: justify;
-        }
-        
-        /* Layout helpers */
-        .flex {
-            display: flex;
-        }
-        
-        .justify-between {
-            justify-content: space-between;
-        }
-        
-        .items-baseline {
-            align-items: baseline;
-        }
-        
-        .text-sm {
-            font-size: 10.5pt;
-        }
-        
-        .italic {
-            font-style: italic;
-        }
-        
-        .font-semibold {
-            font-weight: 600;
-        }
-        
-        .font-bold {
-            font-weight: bold;
-        }
-        
-        .space-y-3 > * + * {
-            margin-top: 10px;
-        }
-        
-        .space-y-2 > * + * {
-            margin-top: 6px;
-        }
-        
-        .space-y-1 > * + * {
-            margin-top: 3px;
-        }
-        
-        .gap-x-3 {
-            column-gap: 12px;
-        }
-        
-        .gap-x-4 {
-            column-gap: 16px;
-        }
-        
-        .flex-wrap {
-            flex-wrap: wrap;
-        }
-        
-        .justify-center {
-            justify-content: center;
-        }
-        
-        .text-center {
-            text-align: center;
-        }
-        
-        .mt-2 {
-            margin-top: 6px;
-        }
-        
-        .mb-2 {
-            margin-bottom: 6px;
-        }
-        
-        .mb-4 {
-            margin-bottom: 12px;
-        }
-        
-        .ml-4 {
-            margin-left: 16px;
-        }
-        
-        .pl-1 {
-            padding-left: 4px;
-        }
-        
-        .mt-1 {
-            margin-top: 4px;
-        }
-        
-        .pb-0\.5 {
-            padding-bottom: 2px;
-        }
-        
-        /* Color classes */
-        .text-gray-600 {
-            color: #4a4a4a;
-        }
-        
-        .text-gray-700 {
-            color: #374151;
-        }
-        
-        .text-gray-800 {
-            color: #1f2937;
-        }
-        
-        .text-gray-900 {
-            color: #1a1a1a;
-        }
-        
-        .text-blue-700 {
-            color: #0066cc;
-        }
-        
-        /* Print specific */
-        @media print {
-            body {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+        try {
+            const previewContent = document.getElementById('resume-preview');
+            if (!previewContent) {
+                setDownloadStatus('idle');
+                return;
             }
-            
-            a {
-                text-decoration: none;
+
+            // Create a temporary container for PDF generation
+            const pdfContainer = document.createElement('div');
+            pdfContainer.style.position = 'absolute';
+            pdfContainer.style.left = '-9999px';
+            pdfContainer.style.top = '0';
+            pdfContainer.style.width = '8.5in';
+            pdfContainer.style.background = 'white';
+            pdfContainer.style.padding = '0.5in 0.6in';
+
+            // Clone and prepare content
+            const clonedContent = previewContent.cloneNode(true) as HTMLElement;
+            clonedContent.style.transform = 'none';
+            clonedContent.style.transformOrigin = 'initial';
+            clonedContent.style.margin = '0';
+            clonedContent.style.boxShadow = 'none';
+            clonedContent.style.borderRadius = '0';
+
+            pdfContainer.appendChild(clonedContent);
+            document.body.appendChild(pdfContainer);
+
+            // Generate high-quality canvas
+            const canvas = await html2canvas(pdfContainer, {
+                scale: 2, // Higher resolution for better quality
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff',
+                windowWidth: 816, // 8.5 inches at 96 DPI
+            });
+
+            // Remove temporary container
+            document.body.removeChild(pdfContainer);
+
+            // Calculate dimensions for Letter size (8.5 x 11 inches)
+            const imgWidth = 210; // A4 width in mm (close to letter)
+            const pageHeight = 297; // A4 height in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            // Create PDF
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            // Handle multi-page if content is longer than one page
+            let heightLeft = imgHeight;
+            let position = 0;
+            const imgData = canvas.toDataURL('image/png', 1.0);
+
+            // Add first page
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            // Add additional pages if needed
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
             }
-            
-            .resume-content {
-                padding: 0;
-            }
+
+            // Generate filename based on user's name
+            const fileName = resume.full_name
+                ? `${resume.full_name.replace(/\s+/g, '_')}_Resume.pdf`
+                : 'Resume.pdf';
+
+            // Download the PDF
+            pdf.save(fileName);
+
+            setDownloadStatus('done');
+            setTimeout(() => setDownloadStatus('idle'), 2000);
+        } catch (error) {
+            console.error('PDF generation error:', error);
+            setDownloadStatus('idle');
+            alert('Failed to generate PDF. Please try again.');
         }
-    </style>
-</head>
-<body>
-    ${clonedContent.outerHTML}
-</body>
-</html>
-    `);
-
-        printWindow.document.close();
-
-        // Wait for fonts to load before printing
-        setTimeout(() => {
-            printWindow.print();
-        }, 500);
     };
 
     const savedResumes = listSaved();
@@ -432,11 +266,34 @@ export default function ResumeEditorLayout() {
                             </button>
 
                             <button
-                                onClick={handlePrint}
-                                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-1.5 rounded-lg text-sm transition-colors"
+                                onClick={handleDownloadPDF}
+                                disabled={downloadStatus === 'generating'}
+                                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm transition-colors ${downloadStatus === 'generating'
+                                        ? 'bg-purple-400 cursor-wait'
+                                        : downloadStatus === 'done'
+                                            ? 'bg-green-500 hover:bg-green-600'
+                                            : 'bg-purple-500 hover:bg-purple-600'
+                                    } text-white`}
                             >
-                                <Download className="w-4 h-4" />
-                                <span className="hidden sm:inline">Download PDF</span>
+                                {downloadStatus === 'generating' ? (
+                                    <>
+                                        <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                        </svg>
+                                        <span className="hidden sm:inline">Generating...</span>
+                                    </>
+                                ) : downloadStatus === 'done' ? (
+                                    <>
+                                        <Check className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Downloaded!</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Download PDF</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -465,10 +322,11 @@ export default function ResumeEditorLayout() {
                                 <div className="bg-gray-800/50 px-4 py-2 border-b border-gray-700 flex items-center justify-between">
                                     <span className="text-sm text-gray-400">Live Preview</span>
                                     <button
-                                        onClick={handlePrint}
-                                        className="text-xs text-blue-400 hover:text-blue-300"
+                                        onClick={handleDownloadPDF}
+                                        disabled={downloadStatus === 'generating'}
+                                        className="text-xs text-blue-400 hover:text-blue-300 disabled:opacity-50"
                                     >
-                                        Download PDF
+                                        {downloadStatus === 'generating' ? 'Generating...' : 'Download PDF'}
                                     </button>
                                 </div>
                                 <div
