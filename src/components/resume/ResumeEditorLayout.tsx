@@ -12,6 +12,8 @@ import ResumePreview from "./ResumePreview";
 import ScorePanel from "./ScorePanel";
 import AvoidedWordsPanel from "./AvoidedWordsPanel";
 import JDMatcherPanel from "./JDMatcherPanel";
+import ImportResume from "./ImportResume";
+import { Resume } from "@/types/resume";
 import {
     Save,
     Download,
@@ -21,7 +23,8 @@ import {
     Plus,
     Trash2,
     Check,
-    ChevronDown
+    ChevronDown,
+    Upload
 } from "lucide-react";
 
 export default function ResumeEditorLayout() {
@@ -29,7 +32,25 @@ export default function ResumeEditorLayout() {
     const [showPreview, setShowPreview] = useState(true);
     const [showSavedList, setShowSavedList] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+    const [showImportModal, setShowImportModal] = useState(false);
     const previewRef = useRef<HTMLDivElement>(null);
+
+    const handleImport = (data: Partial<Resume>) => {
+        // Merge imported data with existing resume
+        updateResume({
+            full_name: data.full_name || resume.full_name,
+            email: data.email || resume.email,
+            phone: data.phone || resume.phone,
+            location: data.location || resume.location,
+            summary: data.summary || resume.summary,
+            links: data.links && data.links.length > 0 ? data.links : resume.links,
+            skills: data.skills && data.skills.length > 0 ? data.skills : resume.skills,
+            experiences: data.experiences && data.experiences.length > 0 ? data.experiences : resume.experiences,
+            education: data.education && data.education.length > 0 ? data.education : resume.education,
+            projects: data.projects && data.projects.length > 0 ? data.projects : resume.projects,
+            certifications: data.certifications && data.certifications.length > 0 ? data.certifications : resume.certifications,
+        });
+    };
 
     const handleSave = () => {
         setSaveStatus('saving');
@@ -329,6 +350,13 @@ export default function ResumeEditorLayout() {
                                                 <Plus className="w-4 h-4" />
                                                 New Resume
                                             </button>
+                                            <button
+                                                onClick={() => { setShowImportModal(true); setShowSavedList(false); }}
+                                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-purple-400 hover:bg-gray-700 rounded-lg transition-colors"
+                                            >
+                                                <Upload className="w-4 h-4" />
+                                                Import Resume
+                                            </button>
                                         </div>
                                         <div className="max-h-48 overflow-y-auto">
                                             {savedResumes.map((r) => (
@@ -451,6 +479,14 @@ export default function ResumeEditorLayout() {
                     )}
                 </div>
             </div>
+
+            {/* Import Resume Modal */}
+            {showImportModal && (
+                <ImportResume
+                    onImport={handleImport}
+                    onClose={() => setShowImportModal(false)}
+                />
+            )}
         </div>
     );
 }
