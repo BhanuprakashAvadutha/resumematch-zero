@@ -1,8 +1,8 @@
 "use client";
 import { useState, useRef } from "react";
 import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
 import { useResume } from "./ResumeContext";
+import { formatDateForDisplay } from "./MonthPicker";
 import HeaderSection from "./sections/HeaderSection";
 import SummarySection from "./sections/SummarySection";
 import SkillsSection from "./sections/SkillsSection";
@@ -68,124 +68,369 @@ export default function ResumeEditorLayout() {
         setDownloadStatus('generating');
 
         try {
-            const previewContent = document.getElementById('resume-preview');
-            if (!previewContent) {
-                setDownloadStatus('idle');
-                return;
-            }
-
-            // Extract all links BEFORE creating the temporary container
-            const links = Array.from(previewContent.querySelectorAll('a'));
-            const linkData = links.map(link => {
-                const rect = link.getBoundingClientRect();
-                const containerRect = previewContent.getBoundingClientRect();
-                return {
-                    url: link.href,
-                    x: rect.left - containerRect.left,
-                    y: rect.top - containerRect.top,
-                    width: rect.width,
-                    height: rect.height
-                };
-            });
-
-            // Create a temporary container for PDF generation
-            const pdfContainer = document.createElement('div');
-            pdfContainer.style.position = 'absolute';
-            pdfContainer.style.left = '-9999px';
-            pdfContainer.style.top = '0';
-            pdfContainer.style.width = '8.5in';
-            pdfContainer.style.background = 'white';
-            pdfContainer.style.padding = '0.5in 0.6in';
-
-            // Clone and prepare content
-            const clonedContent = previewContent.cloneNode(true) as HTMLElement;
-            clonedContent.style.transform = 'none';
-            clonedContent.style.transformOrigin = 'initial';
-            clonedContent.style.margin = '0';
-            clonedContent.style.boxShadow = 'none';
-            clonedContent.style.borderRadius = '0';
-
-            pdfContainer.appendChild(clonedContent);
-            document.body.appendChild(pdfContainer);
-
-            // Get container dimensions for scaling
-            const containerRect = pdfContainer.getBoundingClientRect();
-
-            // Generate high-quality canvas
-            const canvas = await html2canvas(pdfContainer, {
-                scale: 2, // Higher resolution for better quality
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#ffffff',
-                windowWidth: 816, // 8.5 inches at 96 DPI
-            });
-
-            // Remove temporary container
-            document.body.removeChild(pdfContainer);
-
-            // Calculate dimensions for Letter size (8.5 x 11 inches)
-            const imgWidth = 210; // A4 width in mm (close to letter)
-            const pageHeight = 297; // A4 height in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            // Create PDF
+            // Initialize PDF - A4 size, Millimeters
             const pdf = new jsPDF('p', 'mm', 'a4');
 
-            // Handle multi-page if content is longer than one page
-            let heightLeft = imgHeight;
-            let position = 0;
-            const imgData = canvas.toDataURL('image/png', 1.0);
+            // Layout Constants
+            const marginX = 15;
+            const pageWidth = 210;
+            const contentWidth = pageWidth - (marginX * 2);
+            const lineHeight = 5; // Standard line height
 
-            // Add first page
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+            // Fonts
+            pdf.setFont("times"); // Matches the serif look of the image
 
-            // Add additional pages if needed
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
+            let cursorY = 15; // Start position
 
-            // Add clickable links to PDF
-            linkData.forEach(link => {
-                // Convert pixel coordinates to PDF coordinates (mm)
-                // Account for the padding (0.5in = 12.7mm top, 0.6in = 15.24mm left)
-                const pdfX = (link.x / containerRect.width) * imgWidth;
-                const pdfY = (link.y / containerRect.height) * imgHeight;
-                const pdfWidth = (link.width / containerRect.width) * imgWidth;
-                const pdfHeight = (link.height / containerRect.height) * imgHeight;
+            // Helper: Check page break
+            const checkPageBreak = (spaceNeeded: number) => {
+                if (cursorY + spaceNeeded > 280) { // Leave bottom margin
+                    pdf.addPage();
+                    cursorY = 20; // Resume at top margin
+                }
+            };
 
-                // Determine which page this link is on
-                let currentPage = 1;
-                let adjustedY = pdfY;
+            // Helper: Add Section Header
+            const addSectionHeader = (title: string) => {
+                checkPageBreak(10);
+                cursorY += 4;
+                pdf.setFont("times", "bold");
+                pdf.setFontSize(11);
+                pdf.text(title.toUpperCase(), marginX, cursorY);
 
-                while (adjustedY > pageHeight && currentPage < pdf.getNumberOfPages()) {
-                    adjustedY -= pageHeight;
-                    currentPage++;
+                // Horizontal Line
+                cursorY += 1.5;
+                pdf.setLineWidth(0.5);
+                pdf.line(marginX, cursorY, marginX + contentWidth, cursorY);
+
+                cursorY += 5; // Space after header
+                pdf.setFont("times", "normal");
+            };
+
+            // Helper: Format Date Range
+            const formatDateRange = (start: string, end: string) => {
+                const s = formatDateForDisplay(start);
+                const e = formatDateForDisplay(end);
+                if (!s && !e) return "";
+                if (!e) return s;
+                if (!s) return e;
+                return `${s} - ${e}`;
+            };
+
+            // ======================
+            // 1. HEADER
+            // ======================
+            // Name
+            pdf.setFont("times", "bold");
+            pdf.setFontSize(22);
+            pdf.setTextColor(0, 0, 0); // Black
+            const name = resume.full_name || "Your Name";
+            const nameWidth = pdf.getTextWidth(name);
+            pdf.text(name, (pageWidth - nameWidth) / 2, cursorY);
+            cursorY += 6;
+
+            // Contact Info line
+            pdf.setFont("times", "normal");
+            pdf.setFontSize(10);
+
+            const contactParts = [];
+            if (resume.location) contactParts.push(resume.location);
+            if (resume.email) contactParts.push(resume.email);
+            if (resume.phone) contactParts.push(resume.phone);
+
+            const contactText = contactParts.join(" • ");
+            const contactWidth = pdf.getTextWidth(contactText);
+            const startX = (pageWidth - contactWidth) / 2;
+
+            // We draw manually to make links clickable
+            let currentX = startX;
+            contactParts.forEach((part, index) => {
+                if (part === resume.email) {
+                    pdf.setTextColor(29, 78, 216); // Blue link
+                    pdf.textWithLink(part, currentX, cursorY, { url: `mailto:${part}` });
+                    pdf.setTextColor(0, 0, 0);
+                } else if (part === resume.phone) {
+                    pdf.text(part, currentX, cursorY);
+                } else {
+                    pdf.text(part, currentX, cursorY);
                 }
 
-                // Only add link if it's visible on a page
-                if (adjustedY >= 0 && adjustedY < pageHeight) {
-                    // Set the active page
-                    pdf.setPage(currentPage);
-
-                    // Add the clickable link area
-                    pdf.link(pdfX, adjustedY, pdfWidth, pdfHeight, { url: link.url });
+                currentX += pdf.getTextWidth(part);
+                if (index < contactParts.length - 1) {
+                    pdf.text(" • ", currentX, cursorY);
+                    currentX += pdf.getTextWidth(" • ");
                 }
             });
+            cursorY += 5;
 
-            // Generate filename based on user's name
+            // Links Line (LinkedIn, Portfolio, etc.)
+            if (resume.links && resume.links.length > 0) {
+                const validLinks = resume.links.filter(l => l.url);
+                if (validLinks.length > 0) {
+                    // Calculate total width first to center
+                    let totalLinkWidth = 0;
+                    validLinks.forEach((link, i) => {
+                        const label = link.label || link.url;
+                        totalLinkWidth += pdf.getTextWidth(label);
+                        if (i < validLinks.length - 1) totalLinkWidth += pdf.getTextWidth(" • ");
+                    });
+
+                    let linkX = (pageWidth - totalLinkWidth) / 2;
+
+                    pdf.setTextColor(29, 78, 216); // Blue
+                    validLinks.forEach((link, i) => {
+                        const label = link.label || link.url;
+                        const url = link.url.startsWith('http') ? link.url : `https://${link.url}`;
+                        pdf.textWithLink(label, linkX, cursorY, { url });
+                        linkX += pdf.getTextWidth(label);
+
+                        if (i < validLinks.length - 1) {
+                            pdf.setTextColor(0, 0, 0);
+                            pdf.text(" • ", linkX, cursorY);
+                            linkX += pdf.getTextWidth(" • ");
+                            pdf.setTextColor(29, 78, 216);
+                        }
+                    });
+                    pdf.setTextColor(0, 0, 0); // Reset to black
+                    cursorY += 8;
+                } else {
+                    cursorY += 3;
+                }
+            } else {
+                cursorY += 3;
+            }
+
+            // ======================
+            // 2. SUMMARY
+            // ======================
+            if (resume.summary) {
+                // No specific header for summary in the image, but usually standard.
+                // Image doesn't show "SUMMARY" header explicitly but text block at top. 
+                // However, standard resumes often have it. The image shows text block immediately after header.
+                // Let's print the text.
+                pdf.setFont("times", "normal");
+                pdf.setFontSize(10.5);
+                const splitSummary = pdf.splitTextToSize(resume.summary, contentWidth);
+                checkPageBreak(splitSummary.length * 4);
+                pdf.text(splitSummary, marginX, cursorY, { align: 'justify', maxWidth: contentWidth });
+                cursorY += (splitSummary.length * 4) + 4;
+            }
+
+            // ======================
+            // 3. SKILLS
+            // ======================
+            if (resume.skills && resume.skills.length > 0 && resume.skills.some(s => s.items.length > 0)) {
+                addSectionHeader("SKILLS");
+                pdf.setFontSize(10.5);
+
+                resume.skills.forEach(skillGroup => {
+                    if (skillGroup.items.length === 0) return;
+
+                    checkPageBreak(5);
+                    const category = `${skillGroup.category}:`;
+                    const items = skillGroup.items.join(", ");
+
+                    pdf.setFont("times", "bold");
+                    pdf.text(category, marginX, cursorY);
+
+                    const catWidth = pdf.getTextWidth(category);
+                    pdf.setFont("times", "normal");
+
+                    // Wrap items if they exceed line
+                    const itemMaxWidth = contentWidth - catWidth - 2;
+                    const splitItems = pdf.splitTextToSize(items, itemMaxWidth);
+
+                    pdf.text(splitItems, marginX + catWidth + 2, cursorY);
+                    cursorY += (splitItems.length * 4.5);
+                });
+                cursorY += 2;
+            }
+
+            // ======================
+            // 4. EXPERIENCE
+            // ======================
+            if (resume.experiences && resume.experiences.length > 0) {
+                addSectionHeader("WORK EXPERIENCE");
+
+                resume.experiences.forEach(exp => {
+                    // Line 1: Role & Date
+                    checkPageBreak(15); // Min space for title
+
+                    pdf.setFont("times", "bold");
+                    pdf.setFontSize(11); // Slightly larger for role matching image
+                    pdf.text(exp.title, marginX, cursorY);
+
+                    const dateStr = formatDateRange(exp.start_date, exp.end_date);
+                    pdf.setFontSize(10.5);
+                    pdf.text(dateStr, pageWidth - marginX, cursorY, { align: "right" });
+
+                    cursorY += 5;
+
+                    // Line 2: Company & Location
+                    pdf.setFont("times", "normal"); // Image shows company as normal or semi-bold. Let's stick to normal but maybe bold text? 
+                    // Wait, image: "Pepelead (PepperAds)" is Bold? No, looks slightly distinct.
+                    // Let's use Bold for Company as per standard high quality resumes, or matching image carefully.
+                    // Image: "Data Analyst" (Bold) ... Date (Bold).
+                    // Next line: "Pepeleads" (Bold) ... "India" (Bold?)
+                    // Let's make Company Name Bold as well to stand out.
+                    pdf.setFont("times", "bold");
+                    pdf.text(exp.company, marginX, cursorY);
+
+                    if (exp.location) {
+                        pdf.text(exp.location, pageWidth - marginX, cursorY, { align: "right" });
+                    }
+                    cursorY += 5;
+
+                    // Bullets
+                    pdf.setFont("times", "normal");
+                    pdf.setFontSize(10.5);
+
+                    exp.bullets.forEach(bullet => {
+                        if (!bullet.trim()) return;
+
+                        // Simple bullet handling
+                        // Clean bullet text
+                        const cleanBullet = bullet.trim();
+
+                        // Calculate wrapped text dimensions
+                        // Indent bullet text by 5mm
+                        const bulletIndent = 5;
+                        const textWidth = contentWidth - bulletIndent;
+                        const splitText = pdf.splitTextToSize(cleanBullet, textWidth);
+
+                        checkPageBreak(splitText.length * 4);
+
+                        // Draw Bullet
+                        pdf.text("•", marginX + 1, cursorY);
+
+                        // Draw Text
+                        pdf.text(splitText, marginX + bulletIndent, cursorY, { maxWidth: textWidth, align: "justify" });
+
+                        cursorY += (splitText.length * 4.2) + 1; // 4.2 spacing + 1 padding
+                    });
+
+                    cursorY += 3; // Space between jobs
+                });
+            }
+
+            // ======================
+            // 5. PROJECTS
+            // ======================
+            if (resume.projects && resume.projects.length > 0) {
+                addSectionHeader("PROJECTS");
+
+                resume.projects.forEach(proj => {
+                    checkPageBreak(15);
+
+                    // Line 1: Name & Date
+                    pdf.setFont("times", "bold");
+                    pdf.setFontSize(11);
+                    pdf.text(proj.name, marginX, cursorY);
+
+                    if (proj.date_range) {
+                        const dateStr = formatDateForDisplay(proj.date_range);
+                        pdf.setFontSize(10.5);
+                        pdf.text(dateStr, pageWidth - marginX, cursorY, { align: "right" });
+                    }
+                    cursorY += 5;
+
+                    // Bullets
+                    pdf.setFont("times", "normal");
+                    pdf.setFontSize(10.5);
+
+                    proj.bullets.forEach(bullet => {
+                        if (!bullet.trim()) return;
+                        const cleanBullet = bullet.trim();
+                        const bulletIndent = 5;
+                        const textWidth = contentWidth - bulletIndent;
+                        const splitText = pdf.splitTextToSize(cleanBullet, textWidth);
+
+                        checkPageBreak(splitText.length * 4);
+
+                        pdf.text("•", marginX + 1, cursorY);
+                        pdf.text(splitText, marginX + bulletIndent, cursorY, { maxWidth: textWidth, align: "justify" });
+
+                        cursorY += (splitText.length * 4.2) + 1;
+                    });
+                    cursorY += 3;
+                });
+            }
+
+            // ======================
+            // 6. EDUCATION
+            // ======================
+            if (resume.education && resume.education.length > 0) {
+                addSectionHeader("EDUCATION");
+
+                resume.education.forEach(edu => {
+                    checkPageBreak(15);
+
+                    // Line 1: Degree & Date
+                    pdf.setFont("times", "bold");
+                    pdf.setFontSize(11);
+                    pdf.text(edu.degree, marginX, cursorY);
+
+                    const dateStr = formatDateRange(edu.start_date || "", edu.end_date || "") || edu.date_range;
+                    pdf.setFontSize(10.5);
+                    pdf.text(dateStr, pageWidth - marginX, cursorY, { align: "right" });
+                    cursorY += 5;
+
+                    // Line 2: Institution & Location/GPA
+                    pdf.setFont("times", "normal");
+                    pdf.text(edu.institution, marginX, cursorY);
+
+                    // GPA/Location on right? Image shows GPA usually under or right.
+                    // Let's put formatting logic: "GPA: 6.96" on right.
+                    let eduMeta = "";
+                    // if (edu.location) eduMeta = edu.location;
+                    if (edu.gpa) eduMeta += `GPA: ${edu.gpa}`;
+
+                    if (eduMeta) {
+                        pdf.text(eduMeta, pageWidth - marginX, cursorY, { align: "right" });
+                    }
+
+                    cursorY += 5;
+
+                    if (edu.notes) {
+                        pdf.setFont("times", "italic");
+                        const splitNotes = pdf.splitTextToSize(edu.notes, contentWidth);
+                        checkPageBreak(splitNotes.length * 4);
+                        pdf.text(splitNotes, marginX, cursorY);
+                        cursorY += (splitNotes.length * 4) + 1;
+                        pdf.setFont("times", "normal");
+                    }
+
+                    cursorY += 2;
+                });
+            }
+
+            // ======================
+            // 7. CERTIFICATIONS / AWARDS (Optional, if space)
+            // ======================
+            if (resume.certifications && resume.certifications.length > 0 && resume.certifications.some(c => c.name)) {
+                addSectionHeader("CERTIFICATIONS");
+                pdf.setFontSize(10.5);
+                resume.certifications.filter(c => c.name).forEach(cert => {
+                    checkPageBreak(5);
+                    const text = `${cert.name}${cert.issuer ? ' - ' + cert.issuer : ''}`;
+                    // Maybe put date on right?
+                    pdf.text("• " + text, marginX + 1, cursorY);
+                    if (cert.date) {
+                        pdf.text(formatDateForDisplay(cert.date), pageWidth - marginX, cursorY, { align: "right" });
+                    }
+                    cursorY += 5;
+                });
+            }
+
+            // Generate filename
             const fileName = resume.full_name
                 ? `${resume.full_name.replace(/\s+/g, '_')}_Resume.pdf`
                 : 'Resume.pdf';
 
-            // Download the PDF
             pdf.save(fileName);
-
             setDownloadStatus('done');
             setTimeout(() => setDownloadStatus('idle'), 2000);
+
         } catch (error) {
             console.error('PDF generation error:', error);
             setDownloadStatus('idle');
