@@ -441,31 +441,31 @@ export default function ResumeEditorLayout() {
     const savedResumes = listSaved();
 
     return (
-        <div className="min-h-screen bg-[#0a0a0f]">
+        <div className="min-h-screen bg-[#0a0a0f] pb-24 sm:pb-0">
             {/* Top Bar */}
             <div className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur border-b border-gray-800">
                 <div className="max-w-7xl mx-auto px-4 py-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-4">
                         {/* Left: Title & Resume Selector */}
-                        <div className="flex items-center gap-4">
-                            <h1 className="text-lg font-semibold text-white flex items-center gap-2">
+                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                            <h1 className="text-lg font-semibold text-white flex items-center gap-2 shrink-0">
                                 <FileText className="w-5 h-5 text-blue-400" />
-                                Resume Builder
+                                <span className="hidden sm:inline">Resume Builder</span>
                             </h1>
 
-                            <div className="relative">
+                            <div className="relative shrink-0">
                                 <button
                                     onClick={() => setShowSavedList(!showSavedList)}
-                                    className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-sm text-gray-300 transition-colors"
+                                    className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-sm text-gray-300 transition-colors max-w-[120px] sm:max-w-[200px]"
                                 >
-                                    <span className="max-w-[150px] truncate">
+                                    <span className="truncate">
                                         {resume.title || 'Untitled Resume'}
                                     </span>
-                                    <ChevronDown className="w-4 h-4" />
+                                    <ChevronDown className="w-4 h-4 shrink-0" />
                                 </button>
 
                                 {showSavedList && (
-                                    <div className="absolute top-full left-0 mt-1 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden">
+                                    <div className="absolute top-full left-0 mt-1 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden z-50">
                                         <div className="p-2 border-b border-gray-700">
                                             <button
                                                 onClick={() => { createNew(); setShowSavedList(false); }}
@@ -510,25 +510,25 @@ export default function ResumeEditorLayout() {
                                 )}
                             </div>
 
-                            {/* Resume Title Edit */}
+                            {/* Resume Title Edit - Hidden on very small screens if needed, or flexible */}
                             <input
                                 type="text"
                                 value={resume.title}
                                 onChange={(e) => updateResume({ title: e.target.value })}
-                                className="bg-transparent border-b border-transparent hover:border-gray-600 focus:border-blue-500 px-1 py-0.5 text-sm text-gray-400 focus:text-white transition-colors outline-none"
-                                placeholder="Resume title..."
+                                className="bg-transparent border-b border-transparent hover:border-gray-600 focus:border-blue-500 px-1 py-0.5 text-sm text-gray-400 focus:text-white transition-colors outline-none min-w-0 flex-1 sm:flex-none"
+                                placeholder="Edit title..."
                             />
                         </div>
 
-                        {/* Right: Actions */}
-                        <div className="flex items-center gap-2">
+                        {/* Right: Actions (Desktop Only) */}
+                        <div className="hidden sm:flex items-center gap-2">
                             {/* Import Resume - Prominent Button */}
                             <button
                                 onClick={() => setShowImportModal(true)}
                                 className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-all shadow-lg shadow-purple-500/20"
                             >
                                 <Upload className="w-4 h-4" />
-                                <span className="hidden sm:inline">Import Resume</span>
+                                <span className="hidden lg:inline">Import Resume</span>
                             </button>
 
                             <button
@@ -536,7 +536,7 @@ export default function ResumeEditorLayout() {
                                 className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-300 hover:text-white transition-colors"
                             >
                                 {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                <span className="hidden sm:inline">{showPreview ? 'Hide' : 'Show'} Preview</span>
+                                <span className="hidden lg:inline">{showPreview ? 'Hide' : 'Show'} Preview</span>
                             </button>
 
                             <button
@@ -550,7 +550,7 @@ export default function ResumeEditorLayout() {
                                     }`}
                             >
                                 {saveStatus === 'saved' ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                                <span className="hidden sm:inline">
+                                <span className="hidden lg:inline">
                                     {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : 'Save'}
                                 </span>
                             </button>
@@ -571,17 +571,17 @@ export default function ResumeEditorLayout() {
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                         </svg>
-                                        <span className="hidden sm:inline">Generating...</span>
+                                        <span className="hidden lg:inline">Generating...</span>
                                     </>
                                 ) : downloadStatus === 'done' ? (
                                     <>
                                         <Check className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Downloaded!</span>
+                                        <span className="hidden lg:inline">Downloaded!</span>
                                     </>
                                 ) : (
                                     <>
                                         <Download className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Download PDF</span>
+                                        <span className="hidden lg:inline">Download PDF</span>
                                     </>
                                 )}
                             </button>
@@ -622,9 +622,12 @@ export default function ResumeEditorLayout() {
                                 <div
                                     ref={previewRef}
                                     className="max-h-[400px] overflow-y-auto bg-gray-100 p-3"
-                                    style={{ transform: 'scale(0.55)', transformOrigin: 'top center', marginBottom: '-45%' }}
+                                    style={{ transform: 'none', transformOrigin: 'top center' }}
                                 >
-                                    <ResumePreview />
+                                    {/* Removed fixed scale for mobile/responsiveness, CSS handling preferred */}
+                                    <div className="origin-top scale-[0.55] sm:scale-75 lg:scale-100 w-[210mm] mx-auto">
+                                        <ResumePreview />
+                                    </div>
                                 </div>
                             </div>
 
@@ -661,6 +664,54 @@ export default function ResumeEditorLayout() {
                             </details>
                         </div>
                     )}
+                </div>
+            </div>
+
+            {/* Mobile Bottom Action Bar */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur border-t border-gray-800 p-2 sm:hidden pb-safe">
+                <div className="grid grid-cols-4 gap-2">
+                    <button
+                        onClick={() => setShowImportModal(true)}
+                        className="flex flex-col items-center justify-center p-2 rounded-lg text-gray-400 hover:text-purple-400 hover:bg-gray-800"
+                    >
+                        <Upload className="w-5 h-5 mb-1" />
+                        <span className="text-[10px]">Import</span>
+                    </button>
+
+                    <button
+                        onClick={() => setShowPreview(!showPreview)}
+                        className={`flex flex-col items-center justify-center p-2 rounded-lg ${showPreview ? 'text-blue-400 bg-gray-800' : 'text-gray-400 hover:bg-gray-800'}`}
+                    >
+                        {showPreview ? <EyeOff className="w-5 h-5 mb-1" /> : <Eye className="w-5 h-5 mb-1" />}
+                        <span className="text-[10px]">Preview</span>
+                    </button>
+
+                    <button
+                        onClick={handleSave}
+                        disabled={!isDirty && saveStatus === 'idle'}
+                        className={`flex flex-col items-center justify-center p-2 rounded-lg ${isDirty ? 'text-blue-400' : 'text-gray-400'}`}
+                    >
+                        {saveStatus === 'saved' ? <Check className="w-5 h-5 mb-1 text-green-500" /> : <Save className="w-5 h-5 mb-1" />}
+                        <span className="text-[10px]">
+                            {saveStatus === 'saved' ? 'Saved' : 'Save'}
+                        </span>
+                    </button>
+
+                    <button
+                        onClick={handleDownloadPDF}
+                        disabled={downloadStatus === 'generating'}
+                        className="flex flex-col items-center justify-center p-2 rounded-lg text-purple-400 hover:bg-gray-800"
+                    >
+                        {downloadStatus === 'generating' ? (
+                            <svg className="animate-spin w-5 h-5 mb-1" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                        ) : (
+                            <Download className="w-5 h-5 mb-1" />
+                        )}
+                        <span className="text-[10px]">Download</span>
+                    </button>
                 </div>
             </div>
 
