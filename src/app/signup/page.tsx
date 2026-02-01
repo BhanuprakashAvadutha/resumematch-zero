@@ -66,7 +66,8 @@ export default function SignupPage() {
             }
             setIsLoading(false);
         } else {
-            // Successful signup - redirect to home (or login if email confirmation required)
+            // Force refresh of server components (Header) to detect new auth state
+            router.refresh();
             router.push("/");
         }
     };

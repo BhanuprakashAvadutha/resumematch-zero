@@ -21,7 +21,9 @@ export default function LoginPage() {
         if (signInError) {
             setError(signInError.message);
         } else {
-            router.push("/"); // Redirect to home page after login
+            // Force refresh of server components (Header) to detect new auth state
+            router.refresh();
+            router.push("/");
         }
     };
 
