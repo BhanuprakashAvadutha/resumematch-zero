@@ -19,10 +19,18 @@ export default function PremiumScanner() {
     const [result, setResult] = useState<AnalysisResult | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const onDrop = useCallback((acceptedFiles: File[]) => {
+    const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
         if (acceptedFiles.length > 0) {
             setFile(acceptedFiles[0]);
             setError(null);
+        } else if (fileRejections.length > 0) {
+            const rejectedFile = fileRejections[0].file;
+            if (rejectedFile && (rejectedFile.name.toLowerCase().endsWith('.pdf') || rejectedFile.name.toLowerCase().endsWith('.docx'))) {
+                setFile(rejectedFile);
+                setError(null);
+            } else {
+                setError("Please upload a valid PDF or DOCX file.");
+            }
         }
     }, []);
 

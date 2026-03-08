@@ -41,8 +41,9 @@ export default function ScannerSection() {
         setIsDragging(false);
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             const droppedFile = e.dataTransfer.files[0];
-            if (droppedFile.type === "application/pdf") {
+            if (droppedFile.type === "application/pdf" || droppedFile.name.toLowerCase().endsWith('.pdf')) {
                 setFile(droppedFile);
+                setError(null);
             } else {
                 setError("Please upload a PDF file.");
             }
@@ -51,7 +52,14 @@ export default function ScannerSection() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
+            const selectedFile = e.target.files[0];
+            if (selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith('.pdf')) {
+                setFile(selectedFile);
+                setError(null);
+            } else {
+                setError("Please upload a PDF file.");
+            }
+            e.target.value = '';
         }
     };
 
