@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, ShieldCheck, Zap, Trophy, FileEdit, TrendingUp } from "lucide-react";
+import { ArrowRight, CheckCircle2, ShieldCheck, Zap, Trophy, FileEdit, TrendingUp, Sparkles } from "lucide-react";
 import { getUser, createClient } from "@/utils/supabase/server";
 import FaqSection from "@/components/FaqSection";
 
@@ -92,29 +92,66 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Primary CTA - Build Resume */}
-          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 rounded-3xl p-8 md:p-10 text-center relative overflow-hidden mb-8">
-            {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/10 rounded-full -ml-24 -mb-24 blur-2xl" />
+          {/* Action Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Primary CTA - Build Resume */}
+            <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 rounded-3xl p-8 md:p-10 text-center relative overflow-hidden flex flex-col h-full">
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/10 rounded-full -ml-24 -mb-24 blur-2xl" />
 
-            <div className="relative z-10">
-              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <FileEdit className="w-8 h-8 text-white" />
+              <div className="relative z-10 flex-1 flex flex-col">
+                <div className="flex-1">
+                  <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <FileEdit className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+                    Build Your Resume
+                  </h2>
+                  <p className="text-blue-100/80 mb-8 max-w-sm mx-auto">
+                    Create an ATS-optimized resume with our intelligent builder. Import your existing resume or start fresh!
+                  </p>
+                </div>
+                <div className="mt-auto">
+                  <Link
+                    href="/resume/builder"
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-white text-blue-700 rounded-xl font-bold text-lg hover:bg-blue-50 transition-all shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    Build Resume Now <ArrowRight className="w-5 h-5" />
+                  </Link>
+                </div>
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-                Build Your Perfect Resume
-              </h2>
-              <p className="text-blue-100/80 mb-8 max-w-lg mx-auto">
-                Create an ATS-optimized resume with our intelligent builder.
-                Import your existing resume or start fresh!
-              </p>
-              <Link
-                href="/resume/builder"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-blue-700 rounded-xl font-bold text-lg hover:bg-blue-50 transition-all shadow-xl shadow-black/20 hover:scale-105 active:scale-95"
-              >
-                Build Resume Now <ArrowRight className="w-5 h-5" />
-              </Link>
+            </div>
+
+            {/* Secondary CTA - Enterprise Scanner */}
+            <div className="bg-gradient-to-br from-gray-900 to-[#0f1016] border border-gray-800 hover:border-indigo-500/50 rounded-3xl p-8 md:p-10 text-center relative overflow-hidden flex flex-col h-full group transition-colors">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full -mr-32 -mt-32 blur-3xl transition-opacity group-hover:opacity-100 opacity-50" />
+
+              <div className="relative z-10 flex-1 flex flex-col">
+                <div className="flex-1">
+                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
+                    <Zap className="w-8 h-8 text-indigo-400" />
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium mb-3">
+                    <Sparkles className="w-3 h-3" />
+                    Enterprise-Grade
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+                    Deep ATS Scanner
+                  </h2>
+                  <p className="text-gray-400 mb-8 max-w-sm mx-auto">
+                    Powered by Gemini 2.0. Instantly analyze your resume against your target role to find missing skills and exact gaps.
+                  </p>
+                </div>
+                <div className="mt-auto">
+                  <Link
+                    href="/premium"
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-500 transition-all shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] border border-indigo-500"
+                  >
+                    Scan Resume <ArrowRight className="w-5 h-5" />
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
 
