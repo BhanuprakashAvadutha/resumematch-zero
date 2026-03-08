@@ -24,7 +24,7 @@ export async function POST(req: Request) {
         }
 
         // 2. Gemini Integration (Using 2.0 Flash)
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env.GEMINI_API_KEY || "AIzaSyCe1qJuZPxIX348aVFKC3mKDH_limR4dyI";
         if (!apiKey) {
             return NextResponse.json({ error: "Gemini API key is not configured" }, { status: 500 });
         }
@@ -55,8 +55,13 @@ export async function POST(req: Request) {
                     type: SchemaType.STRING,
                     description: "A brief, actionable summary explaining why this score was given."
                 },
+                rewritten_bullet_points: {
+                    type: SchemaType.ARRAY,
+                    items: { type: SchemaType.STRING },
+                    description: "3 to 5 highly optimized, ATS-friendly rewritten bullet points tailored to the job description that the user should add to their resume."
+                },
             },
-            required: ["match_score", "key_missing_skills", "formatting_issues", "improvement_tips", "summary_critique"],
+            required: ["match_score", "key_missing_skills", "formatting_issues", "improvement_tips", "summary_critique", "rewritten_bullet_points"],
         };
 
         const model = genAI.getGenerativeModel({

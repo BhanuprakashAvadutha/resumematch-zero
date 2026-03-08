@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, FileText, CheckCircle, AlertTriangle, Sparkles, Loader2, Target, XCircle } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle, AlertTriangle, Sparkles, Loader2, Target, XCircle, Copy } from 'lucide-react';
 
 interface AnalysisResult {
     match_score: number;
@@ -10,6 +10,7 @@ interface AnalysisResult {
     formatting_issues: string[];
     improvement_tips: string[];
     summary_critique: string;
+    rewritten_bullet_points?: string[];
 }
 
 export default function PremiumScanner() {
@@ -310,6 +311,32 @@ export default function PremiumScanner() {
                                     ))}
                                 </ul>
                             </div>
+
+                            {/* Rewritten Bullet Points */}
+                            {result.rewritten_bullet_points && result.rewritten_bullet_points.length > 0 && (
+                                <div className="bg-[#111118] border border-gray-800 rounded-3xl p-6 md:p-8 flex flex-col shadow-xl col-span-1 md:col-span-2">
+                                    <h3 className="text-lg font-semibold text-white mb-6 border-b border-gray-800 pb-4">
+                                        ATS-Optimized Bullet Points
+                                        <span className="block text-sm text-gray-400 font-normal mt-1">Copy these into your resume to immediately improve your match score.</span>
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {result.rewritten_bullet_points.map((bullet, idx) => (
+                                            <div key={idx} className="bg-[#0a0a0f] border border-gray-800 p-4 rounded-xl flex items-start justify-between gap-4 group hover:border-indigo-500/50 transition-colors">
+                                                <div className="flex-1 text-gray-300 text-sm leading-relaxed mt-1">
+                                                    • {bullet}
+                                                </div>
+                                                <button
+                                                    onClick={() => navigator.clipboard.writeText(bullet)}
+                                                    className="p-2 bg-gray-800 text-gray-400 hover:text-white hover:bg-indigo-600 rounded-lg transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                                    title="Copy to clipboard"
+                                                >
+                                                    <Copy className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                         </div>
                     </div>
