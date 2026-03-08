@@ -64,8 +64,8 @@ export async function POST(req: Request) {
             required: ["match_score", "key_missing_skills", "formatting_issues", "improvement_tips", "summary_critique", "rewritten_bullet_points"],
         };
 
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash", // Using standard gemini-2.0-flash
+        let model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash", // Try 2.0 first
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema,
@@ -80,7 +80,21 @@ ${resumeText}
 Job Description:
 ${jobDescription}`;
 
-        const result = await model.generateContent(prompt);
+        let result;
+        try {
+            result = await model.generateContent(prompt);
+        } catch (generationError: any) {
+            console.warn("gemini-2.0-flash failed, falling back to gemini-1.5-flash due to error: ", generationError.message);
+            model = genAI.getGenerativeModel({
+                model: "gemini-1.5-flash", // Fallback to 1.5 which has more robust free tiers
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema,
+                },
+            });
+            result = await model.generateContent(prompt);
+        }
+
         const responseText = result.response.text();
 
         const analysis = JSON.parse(responseText);
