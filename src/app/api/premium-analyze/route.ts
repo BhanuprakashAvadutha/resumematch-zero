@@ -65,7 +65,7 @@ export async function POST(req: Request) {
         };
 
         let model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash", // Try 2.0 first
+            model: "gemini-2.5-flash", // Try 2.5 flash first
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema,
@@ -84,9 +84,9 @@ ${jobDescription}`;
         try {
             result = await model.generateContent(prompt);
         } catch (generationError: any) {
-            console.warn("gemini-2.0-flash failed, falling back to gemini-1.5-flash due to error: ", generationError.message);
+            console.warn("gemini-2.5-flash failed, falling back to gemini-3.1-flash-lite-preview due to error: ", generationError.message);
             model = genAI.getGenerativeModel({
-                model: "gemini-1.5-flash", // Fallback to 1.5 which has more robust free tiers
+                model: "gemini-3.1-flash-lite-preview", // Fallback to 3.1-flash-lite which is low cost
                 generationConfig: {
                     responseMimeType: "application/json",
                     responseSchema,
