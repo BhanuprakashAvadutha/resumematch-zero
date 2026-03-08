@@ -24,7 +24,7 @@ export async function POST(req: Request) {
         }
 
         // 2. Gemini Integration (Using 2.0 Flash)
-        const apiKey = process.env.GEMINI_API_KEY || "AIzaSyCe1qJuZPxIX348aVFKC3mKDH_limR4dyI";
+        const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
             return NextResponse.json({ error: "Gemini API key is not configured" }, { status: 500 });
         }
