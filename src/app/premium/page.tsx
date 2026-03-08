@@ -2,7 +2,8 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, FileText, CheckCircle, AlertTriangle, Sparkles, Loader2, Target, XCircle, Copy } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle, AlertTriangle, Loader2, Target, XCircle, Copy } from 'lucide-react';
+import { SparklesIcon } from '@/components/icons/SparklesIcon';
 
 interface AnalysisResult {
     match_score: number;
@@ -19,6 +20,7 @@ export default function PremiumScanner() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState<AnalysisResult | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [scanTimestamps, setScanTimestamps] = useState<number[]>([]);
 
     const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
         if (acceptedFiles.length > 0) {
@@ -50,9 +52,18 @@ export default function PremiumScanner() {
             return;
         }
 
+        // Client-side rate throttle: max 4 scans per minute
+        const now = Date.now();
+        const recentScans = scanTimestamps.filter(t => now - t < 60000);
+        if (recentScans.length >= 4) {
+            setError("Too many requests. Please wait a few minutes before scanning again.");
+            return;
+        }
+
         setIsAnalyzing(true);
         setError(null);
         setResult(null);
+        setScanTimestamps(prev => [...prev.filter(t => now - t < 60000), now]);
 
         const formData = new FormData();
         formData.append("file", file);
@@ -141,14 +152,14 @@ export default function PremiumScanner() {
                 {/* Header Section */}
                 <div className="text-center space-y-4">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium mb-2">
-                        <Sparkles className="w-4 h-4" />
-                        Enterprise Scanner
+                        <SparklesIcon size={16} />
+                        AI-Powered ATS Scanner
                     </div>
                     <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
                         Deep ATS Insight
                     </h1>
                     <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-                        Powered by Google Gemini 2.0 Flash. Instantly analyze your resume against your target role with our strict intelligence engine.
+                        Instantly analyze your resume against your target role with our advanced intelligence engine.
                     </p>
                 </div>
 
@@ -228,7 +239,7 @@ export default function PremiumScanner() {
                                 </>
                             ) : (
                                 <>
-                                    <Sparkles className="w-5 h-5" />
+                                    <SparklesIcon size={20} />
                                     <span>Analyze Match</span>
                                 </>
                             )}

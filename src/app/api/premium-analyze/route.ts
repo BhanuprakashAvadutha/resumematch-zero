@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import pdf from "pdf-parse";
 import { GoogleGenerativeAI, SchemaType, Schema } from "@google/generative-ai";
+import { createClient } from "@/utils/supabase/server";
 
 export async function POST(req: Request) {
     try {
@@ -10,6 +11,30 @@ export async function POST(req: Request) {
 
         if (!file || !jobDescription) {
             return NextResponse.json({ error: "Missing file or description" }, { status: 400 });
+        }
+
+        // AUTH CHECK — Security requirement
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized. Please sign in to use the scanner." }, { status: 401 });
+        }
+
+        // SCAN LIMIT — 2 scans per user per day
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const { count: todayScans } = await supabase
+            .from("scans")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .gte("created_at", today.toISOString());
+
+        if (todayScans !== null && todayScans >= 2) {
+            return NextResponse.json({
+                error: "Daily scan limit reached (2/2). Please try again tomorrow."
+            }, { status: 429 });
         }
 
         // 1. Parsing PDF
@@ -23,10 +48,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "PDF Parsing Failed. Ensure it is a valid format." }, { status: 400 });
         }
 
-        // 2. Gemini Integration (Using 2.0 Flash)
+        // 2. AI Integration
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            return NextResponse.json({ error: "Gemini API key is not configured" }, { status: 500 });
+            return NextResponse.json({ error: "AI engine is not configured. Please contact support." }, { status: 500 });
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
@@ -65,7 +90,7 @@ export async function POST(req: Request) {
         };
 
         let model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash", // Try 2.5 flash first
+            model: "gemini-2.5-flash",
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema,
@@ -84,9 +109,9 @@ ${jobDescription}`;
         try {
             result = await model.generateContent(prompt);
         } catch (generationError: any) {
-            console.warn("gemini-2.5-flash failed, falling back to gemini-3.1-flash-lite-preview due to error: ", generationError.message);
+            console.warn("Primary model failed, falling back:", generationError.message);
             model = genAI.getGenerativeModel({
-                model: "gemini-3.1-flash-lite-preview", // Fallback to 3.1-flash-lite which is low cost
+                model: "gemini-3-flash-preview",
                 generationConfig: {
                     responseMimeType: "application/json",
                     responseSchema,
@@ -96,12 +121,30 @@ ${jobDescription}`;
         }
 
         const responseText = result.response.text();
-
         const analysis = JSON.parse(responseText);
+
+        // Save to Database
+        try {
+            await supabase.from('scans').insert({
+                user_id: user.id,
+                resume_filename: file.name,
+                resume_size_bytes: file.size,
+                resume_text: resumeText,
+                job_description: jobDescription,
+                job_description_snippet: jobDescription.slice(0, 100),
+                match_score: analysis.match_score,
+                score: analysis.match_score,
+                missing_keywords: analysis.key_missing_skills,
+                matched_keywords: [],
+                feedback: analysis.summary_critique
+            });
+        } catch (dbError) {
+            console.error("DB Save Failed (Ignored):", dbError);
+        }
 
         return NextResponse.json(analysis);
 
     } catch (error: any) {
-        return NextResponse.json({ error: "System Error: " + error.message }, { status: 500 });
+        return NextResponse.json({ error: "Analysis failed. Please try again in a few moments." }, { status: 500 });
     }
 }

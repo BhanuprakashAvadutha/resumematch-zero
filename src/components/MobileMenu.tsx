@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { LayoutDashboard, History, User, LogOut, Menu, X, Home, FileEdit } from "lucide-react";
+import { History, User, LogOut, Menu, X } from "lucide-react";
 import { logout } from "@/app/auth/actions";
+import { HomeIcon } from "@/components/icons/HomeIcon";
+import { ScanTextIcon } from "@/components/icons/ScanTextIcon";
+import { FileTextIcon } from "@/components/icons/FileTextIcon";
 
 export default function MobileMenu({ user }: { user: any }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -42,19 +45,19 @@ export default function MobileMenu({ user }: { user: any }) {
                         onClick={() => setIsOpen(false)}
                     >
                         <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-400">
-                            <Home size={18} />
+                            <HomeIcon size={18} />
                         </div>
                         Home
                     </Link>
                     <Link
-                        href="/scanner"
+                        href="/premium"
                         className="flex items-center gap-3 text-lg font-medium text-gray-300 hover:text-white transition-colors"
                         onClick={() => setIsOpen(false)}
                     >
                         <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
-                            <LayoutDashboard size={18} />
+                            <ScanTextIcon size={18} />
                         </div>
-                        Scanner
+                        ATS Scanner
                     </Link>
                     <Link
                         href="/resume/builder"
@@ -62,7 +65,7 @@ export default function MobileMenu({ user }: { user: any }) {
                         onClick={() => setIsOpen(false)}
                     >
                         <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400">
-                            <FileEdit size={18} />
+                            <FileTextIcon size={18} />
                         </div>
                         Resume Builder
                     </Link>

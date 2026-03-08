@@ -133,14 +133,14 @@ export default async function Home() {
                     <Zap className="w-8 h-8 text-indigo-400" />
                   </div>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium mb-3">
-                    <Sparkles className="w-3 h-3" />
-                    Enterprise-Grade
+                    <Sparkles className="w-3 h-3 animate-pulse" />
+                    AI-Powered
                   </div>
                   <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
                     Deep ATS Scanner
                   </h2>
                   <p className="text-gray-400 mb-8 max-w-sm mx-auto">
-                    Powered by Gemini 2.0. Instantly analyze your resume against your target role to find missing skills and exact gaps.
+                    Instantly analyze your resume against your target role to find missing skills and exact gaps.
                   </p>
                 </div>
                 <div className="mt-auto">
@@ -171,8 +171,8 @@ export default async function Home() {
           {/* Hero Section */}
           <section className="flex flex-col items-center justify-center px-6 py-12 md:py-20 text-center max-w-5xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-400 font-medium text-xs md:text-sm mb-6 md:mb-8 border border-blue-500/20">
-              <Zap size={14} className="md:w-4 md:h-4" fill="currentColor" />
-              <span>New: Enterprise-Grade V2.0 Engine</span>
+              <Zap size={14} className="md:w-4 md:h-4 animate-pulse" fill="currentColor" />
+              <span>AI-Powered ATS Analysis</span>
             </div>
 
             <h1 className="text-4xl md:text-7xl font-bold tracking-tighter mb-4 md:mb-6 bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">
